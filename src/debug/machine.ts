@@ -158,7 +158,7 @@ export class Machine {
     const p = this.program;
     if (p) {
       if (p.result.outputType === 'com') this.env.loadCom(p.result.bytes, p.result.entry);
-      else this.env.loadBin(p.result.bytes, p.result.origin, p.result.binf);
+      else this.env.loadBin(p.result.bytes, p.result.origin, p.result.binf, p.result.entry);
     } else {
       this.cpu.reset();
       this.cpu.sregs[CS] = BIN_LOAD_SEGMENT;

@@ -23,7 +23,11 @@ First complete release.
 - **UI**:
   - EMU8086-style desktop with movable, resizable and overlapping windows: editor, emulator, 80×25 screen, original source, value viewer and tools; task bar; persisted layout.
   - Menus and toolbars follow the decoded 4.08 captions and shortcuts; unsupported controls are visibly disabled.
+- **Fixes from the independent code review** (see the verification report): variable differences, CALL to a
+  FAR PROC, EQU aliases, BIN entry, `=` redefinition, `RETF n`, step back over INT 21h/0Ch, wait retries, an
+  immediate range check, NOT precedence, string equates, and the DUP size limit. Also: step-back history is now
+  an O(1) ring buffer, about 2.5 M instructions/s.
 - **Tests**:
-  - 300 unit and integration tests (acceptance T001–T010, examples, session scheduling, tools)
+  - 314 unit and integration tests (acceptance T001–T010, examples, session scheduling, tools, 12 code-review regressions)
   - 32 Playwright end-to-end tests in Chromium and Firefox
   - the optional full conformance run

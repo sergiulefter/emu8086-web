@@ -27,8 +27,8 @@ displacement; direct `[1234h]`; variables (`var`, `var[BX]`, `[var+2]`, `var+2[S
 | Item | Status |
 |---|---|
 | `ORG`, `DB`, `DW`, `DD`, `n DUP(…)` (nested), `?`, strings `'…'` / `"…"` with doubled quotes | supported |
-| `EQU` (numeric and text), `=` (redefinable) | supported |
-| `name PROC [NEAR\|FAR]` / `name ENDP` (names must match; RET in a FAR PROC → RETF), `END [label]` | supported |
+| `EQU` (numeric, text, strings; an EQU of a variable acts as that variable), `=` (redefinable) | supported |
+| `name PROC [NEAR\|FAR]` / `name ENDP` (names must match; RET in a FAR PROC → RETF; `CALL far_proc` → `PUSH CS` + `CALL`), `END [label]` (also the BIN entry point) | supported |
 | `NAME`, `TITLE`, `PAGE`, `ASSUME`, `.8086`, `.186`, `SUBTTL` | accepted and ignored |
 | `COMMENT <delim> … <delim>` | supported |
 | `OFFSET`, `HIGH`, `LOW`, `LENGTH`, `SIZE`, `TYPE`, `SHORT`, `NEAR PTR`, `FAR PTR`, `$` | supported |

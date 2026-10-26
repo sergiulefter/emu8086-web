@@ -141,7 +141,7 @@ export class DosEnvironment {
   }
 
   /** Loads a .BIN image using EMU8086's default.binf conventions, overridable via #LOAD_SEGMENT=…# etc. */
-  loadBin(image: Uint8Array, origin: number, binf: Record<string, number>): void {
+  loadBin(image: Uint8Array, origin: number, binf: Record<string, number>, entry = origin): void {
     const loadSeg = binf.LOAD_SEGMENT ?? binf.CS ?? BIN_LOAD_SEGMENT;
     const loadOff = binf.LOAD_OFFSET ?? origin;
     this.mem.load(physical(loadSeg, loadOff), image);
@@ -152,7 +152,7 @@ export class DosEnvironment {
     c.sregs[DS] = binf.DS ?? cs;
     c.sregs[ES] = binf.ES ?? cs;
     c.sregs[SS] = binf.SS ?? cs;
-    c.ip = binf.IP ?? loadOff;
+    c.ip = binf.IP ?? (loadOff + entry - origin) & 0xffff; // END label selects the entry point
     c.regs[SP] = binf.SP ?? 0xfffe;
     for (const [name, idx] of [['AX', AX], ['BX', BX], ['CX', CX], ['DX', DX], ['SI', SI], ['DI', DI], ['BP', BP]] as const) {
       if (binf[name] !== undefined) c.regs[idx] = binf[name];
@@ -203,9 +203,14 @@ export class DosEnvironment {
     return true;
   }
 
-  flushKeyboard(): void {
+  /**
+   * Empties the BIOS keyboard buffer. A user action (flush button) is an
+   * external event and is not journaled; a flush performed by a DOS service
+   * (INT 21h/0Ch) is part of the instruction and is undone by Step Back.
+   */
+  flushKeyboard(external = true): void {
     const saved = this.mem.journal;
-    this.mem.journal = null;
+    if (external) this.mem.journal = null;
     this.mem.write16(0x40, 0x1c, this.mem.read16(0x40, 0x1a));
     this.mem.journal = saved;
   }
@@ -466,9 +471,9 @@ export class DosEnvironment {
       case 0x0c: {
         // Flush once on entry; when re-executed after waiting for a key, keep the buffer.
         const fn = r[AX] & 0xff;
-        if (!this.state.flushed) this.flushKeyboard();
+        if (!this.state.flushed) this.flushKeyboard(false);
         if ([0x01, 0x06, 0x07, 0x08, 0x0a].includes(fn)) {
-          this.state = { ...this.state, flushed: true };
+          if (!this.state.flushed) this.state = { ...this.state, flushed: true };
           this.int21(c, fn, stubIp);
           if (!this.pending?.waiting) this.state = { ...this.state, flushed: false };
         } else c.set8(0, 0);
@@ -522,7 +527,8 @@ export class DosEnvironment {
     for (;;) {
       const key = this.popKey();
       if (key === null) {
-        this.state = { ...this.state, lineInput: { count } };
+        // only a real change creates a new state object (an unchanged retry is not a step)
+        if (this.state.lineInput?.count !== count) this.state = { ...this.state, lineInput: { count } };
         this.wait(c, stubIp);
         return;
       }

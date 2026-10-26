@@ -50,6 +50,8 @@ interface Sym {
   /** For `=` (redefinable) constants and EQU: the expression. */
   expr?: Expr;
   redefinable?: boolean;
+  /** PROC FAR. */
+  far?: boolean;
 }
 
 interface Val {
@@ -95,7 +97,7 @@ const NO_OPERAND: Record<string, number[]> = {
   AAA: [0x37], AAS: [0x3f], DAA: [0x27], DAS: [0x2f], CBW: [0x98], CWD: [0x99],
   CLC: [0xf8], STC: [0xf9], CMC: [0xf5], CLD: [0xfc], STD: [0xfd], CLI: [0xfa], STI: [0xfb],
   HLT: [0xf4], NOP: [0x90], WAIT: [0x9b], FWAIT: [0x9b], INTO: [0xce], IRET: [0xcf],
-  LAHF: [0x9f], SAHF: [0x9e], PUSHF: [0x9c], POPF: [0x9d], RETF: [0xcb],
+  LAHF: [0x9f], SAHF: [0x9e], PUSHF: [0x9c], POPF: [0x9d],
   MOVSB: [0xa4], MOVSW: [0xa5], CMPSB: [0xa6], CMPSW: [0xa7], STOSB: [0xaa], STOSW: [0xab],
   LODSB: [0xac], LODSW: [0xad], SCASB: [0xae], SCASW: [0xaf], XLATB: [0xd7],
   PUSHA: [0x60], POPA: [0x61],
@@ -103,7 +105,7 @@ const NO_OPERAND: Record<string, number[]> = {
 const PREFIXES: Record<string, number> = { REP: 0xf3, REPE: 0xf3, REPZ: 0xf3, REPNE: 0xf2, REPNZ: 0xf2, LOCK: 0xf0 };
 const STRING_OPS: Record<string, number> = { MOVS: 0xa4, CMPS: 0xa6, STOS: 0xaa, LODS: 0xac, SCAS: 0xae };
 const OTHER_MNEMONICS = [
-  'MOV', 'PUSH', 'POP', 'XCHG', 'TEST', 'LEA', 'LDS', 'LES', 'INC', 'DEC', 'JMP', 'CALL', 'RET', 'RETN',
+  'MOV', 'PUSH', 'POP', 'XCHG', 'TEST', 'LEA', 'LDS', 'LES', 'INC', 'DEC', 'JMP', 'CALL', 'RET', 'RETN', 'RETF',
   'INT', 'IN', 'OUT', 'AAM', 'AAD', 'XLAT', 'ESC',
 ];
 export const MNEMONICS = new Set<string>([
@@ -143,8 +145,50 @@ class Assembler {
   private changed = false;
   private readonly symbolKinds: SymbolKindLookup = (name) => {
     const s = this.syms.get(name);
-    return s ? { kind: s.kind, size: s.size } : undefined;
+    if (!s) return undefined;
+    if (s.kind === 'const' && s.expr) {
+      // `alias EQU var` (MASM text equate of a variable) is a memory reference
+      const size = this.aliasVarSize(s.expr, new Set([name]));
+      if (size) return { kind: 'var', size };
+    }
+    return { kind: s.kind, size: s.size };
   };
+
+  /** Element size if the expression refers to a variable with a net positive sign (not under OFFSET etc.). */
+  private aliasVarSize(e: Expr, seen: Set<string>): number {
+    let net = 0;
+    let size = 0;
+    const walk = (x: Expr, sign: number) => {
+      switch (x.k) {
+        case 'sym': {
+          if (seen.has(x.name)) return;
+          const s = this.syms.get(x.name);
+          if (!s) return;
+          let sz = s.kind === 'var' ? s.size || 1 : 0;
+          if (!sz && s.kind === 'const' && s.expr) {
+            seen.add(x.name);
+            sz = this.aliasVarSize(s.expr, seen);
+          }
+          if (sz) {
+            net += sign;
+            if (!size && sign > 0) size = sz;
+          }
+          return;
+        }
+        case 'bin':
+          if (x.op === '+' || x.op === '-') { walk(x.l, sign); walk(x.r, x.op === '-' ? -sign : sign); }
+          return;
+        case 'un':
+          if (x.op === '-') walk(x.e, -sign);
+          else if (x.op === '+') walk(x.e, sign);
+          return;
+        default:
+          return;
+      }
+    };
+    walk(e, 1);
+    return net > 0 ? size : 0;
+  }
   binf: Record<string, number> = {};
 
   constructor(source: string) {
@@ -308,7 +352,7 @@ class Assembler {
         const attr = toks[k + 2]?.upper;
         const far = attr === 'FAR';
         if (attr && attr !== 'FAR' && attr !== 'NEAR') throw new AsmError(`PROC type must be NEAR or FAR`, line, toks[k + 2].col, toks[k + 2].text.length);
-        this.defineSymbol(first, line, 'proc', 0);
+        this.defineSymbol(first, line, 'proc', 0).far = far;
         const st = this.newStmt(line, first.col, '', endCol, far);
         st.label = { name: first.upper, col: first.col };
         this.stmts.push(st);
@@ -408,6 +452,7 @@ class Assembler {
     } catch {
       expr = null;
     }
+    if (expr && expr.k === 'str' && expr.chars.length > 2) expr = null; // a string equate is text
     if (!expr) {
       if (redefinable) throw new AsmError(`'=' needs a numeric expression`, line, rhs[0].col, rhs[0].text.length);
       this.textEqu.set(name.upper, rhs);
@@ -421,6 +466,7 @@ class Assembler {
     }
     // Constants are evaluated in source order during passes via a pseudo-statement.
     const sym: Sym = existing ?? { name: name.upper, kind: 'const', value: 0, known: false, reloc: false, size: 0, count: 1, line, col: name.col, redefinable };
+    if (!redefinable) sym.expr = expr;
     this.syms.set(name.upper, sym);
     const st = this.newStmt(line, name.col, '=CONST', endCol, false);
     st.label = { name: name.upper, col: name.col };
@@ -616,8 +662,12 @@ class Assembler {
       try {
         if (st.op === '=CONST') {
           const s = this.syms.get(st.label!.name)!;
-          const v = this.evaluate((st as Stmt & { constExpr: Expr }).constExpr, st.line);
-          if (s.value !== v.v || (v.known && !s.known)) this.changed = true;
+          const cst = st as Stmt & { constExpr: Expr; prevValue?: number; prevKnown?: boolean };
+          const v = this.evaluate(cst.constExpr, st.line);
+          // compare with this statement's value in the previous pass ('=' may redefine the symbol later)
+          if (cst.prevValue !== v.v || cst.prevKnown !== v.known) this.changed = true;
+          cst.prevValue = v.v;
+          cst.prevKnown = v.known;
           s.value = v.v;
           s.known = v.known;
           s.reloc = v.reloc;
@@ -775,6 +825,9 @@ class Assembler {
           items(inner, depth + 1);
           const chunk = out.slice(startLen);
           const chunkCount = count - before;
+          if (startLen + chunk.length * n.v > 0x10000) {
+            throw new AsmError('DUP data exceeds the 64 KB segment', st.line, g[0].col, g[dupIdx].col - g[0].col + 3);
+          }
           for (let i = 1; i < n.v; i++) {
             out.push(...chunk);
             count += chunkCount;
@@ -934,9 +987,10 @@ class Assembler {
       case 'JMP': return this.encodeJmpCall(st, ops, false);
       case 'CALL': return this.encodeJmpCall(st, ops, true);
       case 'RET':
-      case 'RETN': {
+      case 'RETN':
+      case 'RETF': {
         this.expectCount(st, ops, [0, 1]);
-        const far = st.procFar && op === 'RET';
+        const far = op === 'RETF' || (st.procFar && op === 'RET');
         if (ops.length === 0) return [far ? 0xcb : 0xc3];
         return [far ? 0xca : 0xc2, ...le16(this.imm(st, ops[0], 2))];
       }
@@ -1040,6 +1094,7 @@ class Assembler {
         return size === 1 ? [0x04 | (n << 3), this.imm(st, b, 1)] : [0x05 | (n << 3), ...le16(this.imm(st, b, 2))];
       }
       if (size === 1) return [...this.segPrefix(a), 0x80, ...this.modrm(st, n, a), this.imm(st, b, 1)];
+      this.imm(st, b, 2); // range check
       const v = this.val(b.expr, L);
       const w = v.v & 0xffff;
       if (v.known && !v.reloc && (w <= 0x7f || w >= 0xff80)) {
@@ -1165,6 +1220,10 @@ class Assembler {
     if (o.distance === 'far') throw new AsmError(`far ${st.op} to a label needs an explicit segment (${st.op} segment:offset)`, L, o.col);
     const t = this.jumpTarget(st, o);
     const addr = st.address + st.prefixes.length;
+    if (call && o.kind === 'imm' && o.expr.k === 'sym' && this.syms.get(o.expr.name)?.far) {
+      // same-segment FAR PROC: PUSH CS + near CALL, so its RETF returns here (MASM does the same)
+      return [0x0e, 0xe8, ...le16((t.v - (addr + 4)) & 0xffff)];
+    }
     if (call) return [0xe8, ...le16((t.v - (addr + 3)) & 0xffff)];
     if (o.distance !== 'near' && !st.longJump) {
       const rel = t.v - (addr + 2);

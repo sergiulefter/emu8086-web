@@ -43,7 +43,7 @@ export type Expr =
   | { k: 'dup'; count: Expr; items: Expr[]; col: number }
   | { k: 'undef'; col: number };
 
-const UNARY_KEYWORDS = new Set(['OFFSET', 'HIGH', 'LOW', 'NOT', 'LENGTH', 'SIZE', 'TYPE', 'SEG']);
+const UNARY_KEYWORDS = new Set(['OFFSET', 'HIGH', 'LOW', 'LENGTH', 'SIZE', 'TYPE', 'SEG']);
 const MUL_OPS = new Set(['*', '/', 'MOD', 'SHL', 'SHR']);
 
 export class ExprParser {
@@ -96,13 +96,23 @@ export class ExprParser {
   }
 
   private parseAnd(): Expr {
-    let l = this.parseAdd();
+    let l = this.parseNot();
     while (this.isWord('AND') || this.isPunct('&')) {
       const t = this.peek()!;
       this.pos++;
-      l = { k: 'bin', op: 'AND', l, r: this.parseAdd(), col: t.col };
+      l = { k: 'bin', op: 'AND', l, r: this.parseNot(), col: t.col };
     }
     return l;
+  }
+
+  /** MASM precedence: NOT binds looser than + and - but tighter than AND. */
+  private parseNot(): Expr {
+    if (this.isWord('NOT')) {
+      const t = this.peek()!;
+      this.pos++;
+      return { k: 'un', op: 'NOT', e: this.parseNot(), col: t.col };
+    }
+    return this.parseAdd();
   }
 
   private parseAdd(): Expr {
@@ -282,24 +292,42 @@ export function parseOperand(toks: Token[], line: number, endCol: number, symbol
 }
 
 function containsMemSyntax(e: Expr, symbols: SymbolKindLookup): { bracket: boolean; reg: boolean; varSize: number } {
+  // Variables are counted with their sign: `end_var - start_var` cancels out and
+  // is a constant distance (MASM), while `var`, `var + 2` or `var[BX]` is memory.
   const res = { bracket: false, reg: false, varSize: 0 };
-  const walk = (x: Expr, inOffset: boolean) => {
+  let net = 0;
+  let firstSize = 0;
+  const walk = (x: Expr, inOffset: boolean, sign: number) => {
     switch (x.k) {
-      case 'mem': res.bracket = true; walk(x.e, inOffset); break;
+      case 'mem': res.bracket = true; walk(x.e, inOffset, sign); break;
       case 'reg': res.reg = true; break;
-      case 'seg': res.bracket = true; walk(x.e, inOffset); break;
+      case 'seg': res.bracket = true; walk(x.e, inOffset, sign); break;
       case 'sym': {
         if (inOffset) break;
         const s = symbols(x.name);
-        if (s && s.kind === 'var' && !res.varSize) res.varSize = s.size || 1;
+        if (s && s.kind === 'var') {
+          net += sign;
+          if (!firstSize && sign > 0) firstSize = s.size || 1;
+        }
         break;
       }
-      case 'un': walk(x.e, inOffset || ['OFFSET', 'LENGTH', 'SIZE', 'TYPE', 'SEG', 'HIGH', 'LOW'].includes(x.op)); break;
-      case 'bin': walk(x.l, inOffset); walk(x.r, inOffset); break;
+      case 'un':
+        walk(x.e, inOffset || ['OFFSET', 'LENGTH', 'SIZE', 'TYPE', 'SEG', 'HIGH', 'LOW', 'NOT'].includes(x.op), x.op === '-' ? -sign : sign);
+        break;
+      case 'bin':
+        if (x.op === '+' || x.op === '-') {
+          walk(x.l, inOffset, sign);
+          walk(x.r, inOffset, x.op === '-' ? -sign : sign);
+        } else {
+          walk(x.l, inOffset, sign);
+          walk(x.r, inOffset, sign);
+        }
+        break;
       default: break;
     }
   };
-  walk(e, false);
+  walk(e, false, 1);
+  if (net !== 0) res.varSize = firstSize || 1;
   return res;
 }
 

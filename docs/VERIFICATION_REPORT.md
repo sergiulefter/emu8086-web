@@ -7,7 +7,7 @@
 
 | Suite | Command | Result |
 |---|---|---|
-| Unit + integration (Vitest) | `npm test` | **302 / 302 passed** |
+| Unit + integration (Vitest) | `npm test` | **314 / 314 passed** |
 | End-to-end, Chromium + Firefox (Playwright) | `npm run test:e2e` | **32 / 32 passed** (16 scenarios × 2 browsers) |
 | CPU hardware conformance (SingleStepTests/8088 v2, every test of every file) | `npm run test:conformance` | **323 / 323 opcode files passed** |
 | Type check | `npm run typecheck` | clean |
@@ -51,6 +51,32 @@ User journeys J1–J5 are covered by T001/T003 (J1, J3), T002 (J2), T005 (J4) an
   6.5 M/s without journaling.
 - **Visual review**: compared side by side with REF-01 to REF-05 at 1440×900 (Chromium) and 1366×768 (Firefox).
   Screenshots are in `docs/screenshots/`. Known deviations are listed in `KNOWN_UI_DIFFERENCES.md`.
+
+## Independent code review
+A separate review pass hunted for correctness bugs in the assembler, DOS environment and debugger, and confirmed
+each one by running it. It found 12 bugs. All are fixed and each is locked in by a test in
+`tests/integration/review-regressions.test.ts`:
+
+| # | Severity | Issue | Fix |
+|---|---|---|---|
+| 1 | wrong code | `mov cx, end_var - start_var` assembled as a memory load | variables are counted with their sign; a net-zero difference is an immediate |
+| 2 | wrong emulation | `CALL` to a `PROC FAR` was near while its `RET` became `RETF` | emits `PUSH CS` + `CALL` (the MASM form) |
+| 3 | wrong code | `alias EQU var` loaded the address instead of the memory | an EQU of a variable acts as that variable |
+| 4 | wrong emulation | BIN `END label` entry was ignored by the loader | IP = load offset + (entry − origin) |
+| 5 | false error | redefining with `=` never converged | each `=` statement is compared with its own previous value |
+| 6 | false error | `RETF n` was rejected | supported (`CA iw`) |
+| 7 | step back | undoing INT 21h/0Ch did not restore the flushed keys | a flush done by a service is journaled |
+| 8 | debugger | retrying a waiting INT 21h/0Ah or 0Ch counted as a step | an unchanged retry no longer creates a new state |
+| 9 | silent truncation | `add bx, 10005h` was accepted | 16-bit range check before choosing the `83` form |
+| 10 | precedence | `NOT 1 + 1` = FFFFh | NOT now binds below + and −, as in MASM (FFFDh) |
+| 11 | false error | `s equ 'hello'` | a string equate is a text equate |
+| 12 | hang / memory | `db 65535 dup(65535 dup(0))` used about 2 GB of memory | aborts at once with "exceeds the 64 KB segment" |
+
+The review also checked these and found them correct: negative displacements, forward references, every number
+format, DUP and strings, segment overrides in every spelling, size inference, objdump agreement for all operand
+forms, Jcc conversion boundaries, ORG gaps, INT 21h/0Ah editing, stacked-flag returns, teletype scrolling at the
+bottom-right corner, INT 10h/13h, keyboard ring wrap, and exact step back across a full program. A 200 000-line
+assembler fuzz run produced no crashes.
 
 ## Fixture paths
 `fixtures/T001_professor_H.asm`, `T002_diagonal_HELLO.asm`, `T002b_classroom_HELLO.asm` (classroom listing
