@@ -242,9 +242,11 @@ export class Machine {
    * (except at the starting address), terminal events, keyboard waits and
    * sleeps.
    */
-  run(maxInstructions: number, deadline = Infinity, now: () => number = () => performance.now()): StepOutcome & { count: number; breakpoint: boolean } {
+  run(
+    maxInstructions: number, deadline = Infinity, now: () => number = () => performance.now(), skipFirstBreakpoint = true,
+  ): StepOutcome & { count: number; breakpoint: boolean } {
     let count = 0;
-    let first = true;
+    let first = skipFirstBreakpoint;
     while (count < maxInstructions) {
       if (!first && this.breakpoints.size && this.breakpoints.has(this.currentAddress())) {
         return { executed: count > 0, stop: null, waiting: false, count, breakpoint: true };
