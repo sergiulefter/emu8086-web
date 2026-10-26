@@ -1,0 +1,3 @@
+org 100h
+MOV CH, 0000_1112b
+RET

@@ -24,10 +24,9 @@ export function hex(v: number, digits: number): string {
   return v.toString(16).toUpperCase().padStart(digits, '0');
 }
 
-/** `0B800h` style literal: hex digits, `h` suffix, leading 0 when the first digit is a letter. */
+/** EMU8086 disassembly literal: always a leading 0, padded digits, `h` suffix (`INT 010h`, `MOV AX, 0B800h`). */
 export function hexLiteral(v: number, digits: number): string {
-  const h = hex(v, digits);
-  return (/^[A-F]/.test(h) ? '0' : '') + h + 'h';
+  return '0' + hex(v, digits) + 'h';
 }
 
 export function disassemble(read: ByteReader, offset: number, segment = 0): Disassembled {

@@ -1,0 +1,12 @@
+org 100h
+
+MOV AX, 0B800h
+MOV DS, AX
+
+; MOV CL, 041h
+MOV CL, 'H'
+MOV CH, 0000_1111b
+MOV BX, 0
+MOV [BX], CX
+
+RET
