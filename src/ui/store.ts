@@ -77,16 +77,21 @@ function defaultLayout(): Record<WinId, Omit<Win, 'id' | 'z' | 'open' | 'minimiz
   const { w: vw, h: vh } = viewport();
   const ew = Math.min(Math.max(vw - 24, 600), 1180);
   const eh = Math.min(Math.max(vh - 24, 400), 820);
-  const emuW = Math.min(700, vw - 20);
+  const emuW = Math.min(vw >= 1440 ? 680 : 660, vw - 20);
   const emuH = Math.min(520, vh - 20);
-  const scrW = Math.min(9 * 80 + 16, vw - 20);
-  const scrH = Math.min(16 * 25 + 30 + 36 + 4, vh - 20);
+  // 80x25 cells of 9x16 pixels + 1px borders: the canvas is shown 1:1 when there is room
+  const scrFull = 9 * 80 + 2;
+  const scrH = Math.min(16 * 25 + 30 + 34 + 2, vh - 20);
   const center = (w: number, h: number) => ({ x: Math.max(10, (vw - w) / 2), y: Math.max(10, (vh - h) / 3), w, h });
   const emuY = Math.max(10, Math.min(vh - emuH - 12, 290));
+  const emuRight = 16 + emuW + 6;
+  const besideEmu = vw - emuRight - 6 >= 560;
+  const scrX = besideEmu ? Math.max(emuRight, vw - scrFull - 6) : Math.max(10, vw - scrFull - 10);
+  const scrW = Math.min(scrFull, vw - scrX - 6);
   return {
     editor: { x: 12, y: 12, w: ew, h: eh },
     emulator: { x: 16, y: emuY, w: emuW, h: emuH },
-    screen: { x: Math.max(10, vw - scrW - 10), y: Math.max(10, Math.min(vh - scrH - 10, emuY + 40)), w: scrW, h: scrH },
+    screen: { x: scrX, y: Math.max(10, Math.min(vh - scrH - 10, emuY + 40)), w: scrW, h: scrH },
     source: { x: Math.max(10, Math.min(vw - 310, 740)), y: 56, w: 300, h: Math.max(150, Math.min(250, emuY + 30)) },
     viewer: { x: Math.max(10, vw - 268), y: 12, w: 256, h: 380 },
     flags: { x: Math.max(10, vw - 500), y: 90, w: 220, h: 240 },
@@ -430,9 +435,13 @@ export class AppStore {
 
   // ------------------------------------------------------------ emulator
   private lastCount = -1;
+  /** Last source line executed inside the program (kept while CS:IP is in the BIOS/DOS ROM, as EMU8086 does). */
+  lastSourceLine: number | null = null;
 
   private onSessionChange(): void {
     const m = this.session.machine;
+    const line = m.currentSourceLine();
+    if (line !== null || m.cpu.instructionCount === 0) this.lastSourceLine = line;
     if (m.cpu.instructionCount !== this.lastCount) {
       this.lastCount = m.cpu.instructionCount;
       this.disasmAnchor = null; // the disassembly follows CS:IP after every executed instruction
