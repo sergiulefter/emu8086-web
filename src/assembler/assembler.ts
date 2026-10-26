@@ -601,7 +601,6 @@ class Assembler {
 
   private runPass(emit?: (st: Stmt, bytes: number[]) => void): void {
     let lc = 0;
-    for (const s of this.syms.values()) if (s.redefinable) s.known = false;
     for (const st of this.stmts) {
       st.address = lc;
       this.here = lc;
@@ -617,7 +616,7 @@ class Assembler {
         if (st.op === '=CONST') {
           const s = this.syms.get(st.label!.name)!;
           const v = this.evaluate((st as Stmt & { constExpr: Expr }).constExpr, st.line);
-          if (s.value !== v.v || s.known !== v.known) this.changed = true;
+          if (s.value !== v.v || (v.known && !s.known)) this.changed = true;
           s.value = v.v;
           s.known = v.known;
           s.reloc = v.reloc;
@@ -869,14 +868,16 @@ class Assembler {
         this.regOrMem(st, b, op);
         if (a.kind === 'mem' && b.kind === 'mem') throw new AsmError('XCHG cannot exchange two memory operands', L, b.col);
         if ((a.kind === 'reg' && a.reg.isSeg) || (b.kind === 'reg' && b.reg.isSeg)) throw new AsmError('XCHG cannot use segment registers', L, a.col);
+        if (a.kind === 'reg' && b.kind === 'reg') {
+          if (a.reg.size !== b.reg.size) throw new AsmError(`operands do not match: ${a.reg.name} and ${b.reg.name} have different sizes`, L, b.col);
+          if (a.reg.size === 2 && a.reg.code === 0) return [0x90 + b.reg.code];
+          if (a.reg.size === 2 && b.reg.code === 0) return [0x90 + a.reg.code];
+          // XCHG r/m, reg: the first register goes in r/m (MASM form)
+          return [a.reg.size === 1 ? 0x86 : 0x87, ...this.modrm(st, b.reg.code, a)];
+        }
         if (a.kind === 'mem') [a, b] = [b, a];
         const ra = a as RegOperand;
-        if (b.kind === 'reg') {
-          if (ra.reg.size !== b.reg.size) throw new AsmError(`operands do not match: ${ra.reg.name} and ${b.reg.name} have different sizes`, L, b.col);
-          if (ra.reg.size === 2 && ra.reg.code === 0) return [0x90 + b.reg.code];
-          if (ra.reg.size === 2 && b.reg.code === 0) return [0x90 + ra.reg.code];
-          return [ra.reg.size === 1 ? 0x86 : 0x87, ...this.modrm(st, ra.reg.code, b)];
-        }
+        if (b.kind === 'reg') throw new AsmError('XCHG: invalid operands', L, b.col);
         const size = this.memSize(st, b, ra);
         return [...this.segPrefix(b), size === 1 ? 0x86 : 0x87, ...this.modrm(st, ra.reg.code, b)];
       }
@@ -896,8 +897,9 @@ class Assembler {
         }
         this.regOrMem(st, b, op);
         if (a.kind === 'mem' && b.kind === 'mem') throw new AsmError('TEST cannot use two memory operands', L, b.col);
-        const reg = (a.kind === 'reg' ? a : b) as RegOperand;
-        const rm = a.kind === 'reg' ? b : a;
+        // TEST r/m, reg: with two registers the first goes in r/m (MASM form).
+        const reg = (b.kind === 'reg' ? b : a) as RegOperand;
+        const rm = b.kind === 'reg' ? a : b;
         if (rm.kind === 'reg' && rm.reg.size !== reg.reg.size) throw new AsmError('operands do not match: different register sizes', L, rm.col);
         const size = rm.kind === 'reg' ? rm.reg.size : this.memSize(st, rm as MemOperand, reg);
         return [...this.segPrefix(rm), size === 1 ? 0x84 : 0x85, ...this.modrm(st, reg.reg.code, rm as RegOperand | MemOperand)];
@@ -1038,7 +1040,8 @@ class Assembler {
       }
       if (size === 1) return [...this.segPrefix(a), 0x80, ...this.modrm(st, n, a), this.imm(st, b, 1)];
       const v = this.val(b.expr, L);
-      if (v.known && !v.reloc && v.v >= -128 && v.v <= 127) {
+      const w = v.v & 0xffff;
+      if (v.known && !v.reloc && (w <= 0x7f || w >= 0xff80)) {
         return [...this.segPrefix(a), 0x83, ...this.modrm(st, n, a), v.v & 0xff];
       }
       return [...this.segPrefix(a), 0x81, ...this.modrm(st, n, a), ...le16(this.imm(st, b, 2))];

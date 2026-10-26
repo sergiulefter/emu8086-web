@@ -126,7 +126,7 @@ export function disassemble(read: ByteReader, offset: number, segment = 0): Disa
         let imm: string;
         if (op === 0x83) {
           const i = next();
-          imm = i & 0x80 ? `-${hexLiteral(0x100 - i, 2)}` : hexLiteral(i, 2);
+          imm = i & 0x80 ? hexLiteral(0xff00 | i, 4) : hexLiteral(i, 2);
         } else imm = word ? imm16() : imm8();
         text = `${ALU[m.reg]} ${word ? rm16(m, true) : rm8(m, true)}, ${imm}`;
         break;
