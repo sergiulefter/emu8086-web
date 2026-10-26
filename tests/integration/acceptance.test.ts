@@ -316,3 +316,16 @@ describe('EMU8086 80186 compatibility forms', () => {
     expect(m.cpu.regs[SP]).toBe(0xfffe);
   });
 });
+
+describe('source highlight after leaving the program', () => {
+  it('keeps the RET line as the last program line while CS:IP is in the PSP/ROM', () => {
+    const m = load('T002b_classroom_HELLO.asm');
+    runToEnd(m);
+    expect(m.currentSourceLine()).toBeNull();
+    expect(m.lastLine).toBe(32);
+    m.stepBack(); m.stepBack(); m.stepBack();
+    expect(m.lastLine).toBe(32);
+    m.stepBack();
+    expect(m.lastLine).toBe(29);
+  });
+});

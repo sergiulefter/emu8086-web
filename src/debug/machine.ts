@@ -25,6 +25,7 @@ interface HistoryEntry {
   state: ServiceState;
   stop: StopEvent | null;
   waiting: boolean;
+  lastLine: number | null;
 }
 
 export interface LoadedProgram {
@@ -53,6 +54,11 @@ export class Machine {
   stopEvent: StopEvent | null = null;
   /** Blocked inside a keyboard service. */
   waiting = false;
+  /**
+   * Most recent source line that CS:IP pointed at. EMU8086 keeps it
+   * highlighted while execution is inside the BIOS/DOS ROM or the PSP.
+   */
+  lastLine: number | null = null;
   readonly breakpoints = new Set<number>();
   historyLimit = DEFAULT_HISTORY_LIMIT;
   private history: HistoryEntry[] = [];
@@ -122,6 +128,7 @@ export class Machine {
       this.cpu.setFlagsWord(IF);
     }
     this.mem.clearDirty();
+    this.lastLine = this.currentSourceLine();
     this.revision++;
   }
 
@@ -160,6 +167,7 @@ export class Machine {
       state: this.env.state,
       stop: this.stopEvent,
       waiting: this.waiting,
+      lastLine: this.lastLine,
     };
     this.mem.journal = entry.writes;
     let stop: StopEvent | null = null;
@@ -192,6 +200,8 @@ export class Machine {
     }
     this.waiting = waiting;
     if (stop) this.stopEvent = stop;
+    const line = this.currentSourceLine();
+    if (line !== null) this.lastLine = line;
     this.pushHistory(entry);
     this.revision++;
     return { executed: true, stop, waiting, sleepMs };
@@ -235,6 +245,7 @@ export class Machine {
     this.env.state = e.state;
     this.stopEvent = e.stop;
     this.waiting = e.waiting;
+    this.lastLine = e.lastLine;
     this.revision++;
     return true;
   }

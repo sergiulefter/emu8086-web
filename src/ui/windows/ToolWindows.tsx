@@ -13,7 +13,7 @@ import { assemble } from '../../assembler/assembler';
 export function SourceWindow() {
   const s = useStore();
   const m = s.session.machine;
-  const cur = m.program ? m.currentSourceLine() ?? s.lastSourceLine : null;
+  const cur = m.program ? m.currentSourceLine() ?? m.lastLine : null;
   const ref = useRef<HTMLDivElement>(null);
   const text = s.loadedSource;
   const lines = text ? text.split(/\r?\n/) : [];

@@ -435,13 +435,9 @@ export class AppStore {
 
   // ------------------------------------------------------------ emulator
   private lastCount = -1;
-  /** Last source line executed inside the program (kept while CS:IP is in the BIOS/DOS ROM, as EMU8086 does). */
-  lastSourceLine: number | null = null;
 
   private onSessionChange(): void {
     const m = this.session.machine;
-    const line = m.currentSourceLine();
-    if (line !== null || m.cpu.instructionCount === 0) this.lastSourceLine = line;
     if (m.cpu.instructionCount !== this.lastCount) {
       this.lastCount = m.cpu.instructionCount;
       this.disasmAnchor = null; // the disassembly follows CS:IP after every executed instruction
