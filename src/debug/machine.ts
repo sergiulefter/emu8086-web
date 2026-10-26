@@ -28,6 +28,46 @@ interface HistoryEntry {
   lastLine: number | null;
 }
 
+/** Fixed-capacity ring buffer: O(1) push, pop-newest and drop-oldest. */
+class HistoryRing {
+  private items: (HistoryEntry | undefined)[];
+  private start = 0;
+  length = 0;
+  /** Journaled numbers held by all entries. */
+  writes = 0;
+
+  constructor(readonly capacity: number) {
+    this.items = new Array(Math.max(0, capacity));
+  }
+
+  push(e: HistoryEntry): void {
+    if (this.capacity <= 0) return;
+    if (this.length === this.capacity) this.dropOldest();
+    this.items[(this.start + this.length) % this.capacity] = e;
+    this.length++;
+    this.writes += e.writes.length;
+    while (this.writes > HISTORY_WRITE_BUDGET && this.length > 1) this.dropOldest();
+  }
+
+  pop(): HistoryEntry | undefined {
+    if (!this.length) return undefined;
+    const i = (this.start + this.length - 1) % this.capacity;
+    const e = this.items[i]!;
+    this.items[i] = undefined;
+    this.length--;
+    this.writes -= e.writes.length;
+    return e;
+  }
+
+  private dropOldest(): void {
+    const e = this.items[this.start]!;
+    this.items[this.start] = undefined;
+    this.start = (this.start + 1) % this.capacity;
+    this.length--;
+    this.writes -= e.writes.length;
+  }
+}
+
 export interface LoadedProgram {
   fileName: string;
   /** e.g. "lab1_5.com_" — EMU8086 marks emulator-built executables with "_". */
@@ -60,9 +100,7 @@ export class Machine {
    */
   lastLine: number | null = null;
   readonly breakpoints = new Set<number>();
-  historyLimit = DEFAULT_HISTORY_LIMIT;
-  private history: HistoryEntry[] = [];
-  private historyWrites = 0;
+  private history = new HistoryRing(DEFAULT_HISTORY_LIMIT);
   /** Monotonic counter of state changes for UI subscribers. */
   revision = 0;
   /** Port I/O and service log (debug window). */
@@ -115,8 +153,7 @@ export class Machine {
     this.env.initMachine();
     this.stopEvent = null;
     this.waiting = false;
-    this.history = [];
-    this.historyWrites = 0;
+    this.history = new HistoryRing(this.history.capacity);
     this.log.length = 0;
     const p = this.program;
     if (p) {
@@ -208,20 +245,22 @@ export class Machine {
   }
 
   private pushHistory(entry: HistoryEntry): void {
-    if (this.historyLimit <= 0) return;
     this.history.push(entry);
-    this.historyWrites += entry.writes.length;
-    while (this.history.length > this.historyLimit || (this.historyWrites > HISTORY_WRITE_BUDGET && this.history.length > 1)) {
-      const old = this.history.shift()!;
-      this.historyWrites -= old.writes.length;
-    }
+  }
+
+  /** Maximum number of steps kept for Step Back (0 disables history). Clears the current history. */
+  get historyLimit(): number {
+    return this.history.capacity;
+  }
+
+  set historyLimit(n: number) {
+    this.history = new HistoryRing(Math.max(0, Math.floor(n)));
   }
 
   /** Reverts the most recent step exactly. Returns false when there is no history. */
   stepBack(): boolean {
     const e = this.history.pop();
     if (!e) return false;
-    this.historyWrites -= e.writes.length;
     const w = e.writes;
     for (let i = w.length - 2; i >= 0; i -= 2) this.mem.bytes[w[i]] = w[i + 1];
     this.mem.version++;

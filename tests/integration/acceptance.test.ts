@@ -329,3 +329,32 @@ describe('source highlight after leaving the program', () => {
     expect(m.lastLine).toBe(29);
   });
 });
+
+describe('step-back history ring buffer', () => {
+  it('keeps exactly the newest N steps after wrapping and still reverses them exactly', () => {
+    const r = assemble('org 100h\nmov cx, 0\nl: inc ax\nmov [200h], ax\nloop l\nret');
+    const m = new Machine();
+    m.load(r, 'ring.asm');
+    m.historyLimit = 100;
+    for (let i = 0; i < 1000; i++) m.step();
+    expect(m.historyLength).toBe(100);
+    const ax = m.cpu.regs[AX];
+    const mem = m.mem.read16(0x700, 0x200);
+    for (let i = 0; i < 99; i++) expect(m.stepBack()).toBe(true);
+    expect(m.stepBack()).toBe(true);
+    expect(m.stepBack()).toBe(false); // history exhausted
+    for (let i = 0; i < 100; i++) m.step();
+    expect(m.cpu.regs[AX]).toBe(ax);
+    expect(m.mem.read16(0x700, 0x200)).toBe(mem);
+  });
+
+  it('long runs stay fast once the history is full (no O(n) eviction)', () => {
+    const r = assemble('org 100h\nmov ax, 0B800h\nmov es, ax\nagain: mov di, 0\nmov cx, 2000\nrep stosw\njmp again');
+    const m = new Machine();
+    m.load(r, 'fast.asm');
+    const t0 = performance.now();
+    const out = m.run(300_000);
+    expect(out.count).toBe(300_000);
+    expect(performance.now() - t0).toBeLessThan(15_000);
+  });
+});
