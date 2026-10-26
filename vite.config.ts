@@ -1,0 +1,12 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  server: { port: 5173, strictPort: false },
+  test: {
+    include: ['tests/unit/**/*.test.ts', 'tests/integration/**/*.test.ts', 'tests/conformance/**/*.test.ts'],
+    environment: 'node',
+    testTimeout: 600000,
+  },
+});
