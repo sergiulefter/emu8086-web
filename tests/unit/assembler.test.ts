@@ -165,3 +165,9 @@ describe('8086 rules and EMU8086 conveniences', () => {
     expect(hexOf('org 100h\ncomment *\nthis is not code\n*\nret')).toBe('c3');
   });
 });
+
+describe('directives that would change meaning are rejected, not ignored', () => {
+  it('.RADIX', () => {
+    expect(errorsOf('.radix 16\nmov ax, 10')[0].message).toMatch(/\.RADIX is not supported/);
+  });
+});

@@ -59,7 +59,7 @@ interface Val {
 }
 
 const DATA_DIRECTIVES: Record<string, number> = { DB: 1, DW: 2, DD: 4 };
-const IGNORED_DIRECTIVES = new Set(['NAME', 'TITLE', 'PAGE', 'ASSUME', '.8086', '.186', '.RADIX', 'SUBTTL', '.LIST', '.NOLIST']);
+const IGNORED_DIRECTIVES = new Set(['NAME', 'TITLE', 'PAGE', 'ASSUME', '.8086', '.186', 'SUBTTL', '.LIST', '.NOLIST']);
 const UNSUPPORTED_DIRECTIVES: Record<string, string> = {
   SEGMENT: 'SEGMENT/ENDS (EXE programs) are not supported yet; write a COM program starting with ORG 100h',
   ENDS: 'SEGMENT/ENDS (EXE programs) are not supported yet; write a COM program starting with ORG 100h',
@@ -77,6 +77,7 @@ const UNSUPPORTED_DIRECTIVES: Record<string, string> = {
   EXTRN: 'EXTRN/PUBLIC (multi-module programs) are not supported',
   PUBLIC: 'EXTRN/PUBLIC (multi-module programs) are not supported',
   DQ: 'DQ (quad word) is not supported; use DD or DW',
+  '.RADIX': '.RADIX is not supported; numbers without a suffix are decimal (use the h, b, o suffixes)',
   DT: 'DT (ten bytes) is not supported',
 };
 

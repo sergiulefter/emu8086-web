@@ -254,7 +254,7 @@ export function disassemble(read: ByteReader, offset: number, segment = 0): Disa
         // Emulator service trap inside the BIOS ROM segment: FF FF CD nn.
         if (segment === ROM_SEGMENT && read(pos & 0xffff) === 0xff && read((pos + 1) & 0xffff) === 0xcd) {
           pos += 2;
-          text = `BIOS SERVICE ${hexLiteral(next(), 2)}`;
+          text = `BIOS DI ${hexLiteral(next(), 2)}`; // EMU8086 shows its BIOS trap as "BIOS DI"
           break;
         }
         const m = modrm();
