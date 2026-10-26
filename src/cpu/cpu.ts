@@ -83,6 +83,12 @@ export class CPU {
 
   hook: ServiceHook | null = null;
   ports: PortBus | null = null;
+  /**
+   * EMU8086 compatibility: execute the 80186 forms PUSH imm (68h/6Ah),
+   * PUSHA (60h) and POPA (61h), which its assembler accepts. Off for strict
+   * 8086 behaviour (where 60h-6Fh alias the conditional jumps).
+   */
+  allow186 = false;
 
   /** CS:IP of the instruction currently executing (first prefix byte). */
   startCs = 0;
@@ -573,6 +579,7 @@ export class CPU {
             if ((op & 7) === SP) { r[SP] = (r[SP] - 2) & 0xffff; this.write16(SS, r[SP], r[SP]); }
             else this.push(r[op & 7]);
           } else if (op >= 0x58 && op <= 0x5f) r[op & 7] = this.pop();
+          else if (this.allow186 && (op === 0x60 || op === 0x61 || op === 0x68 || op === 0x6a)) this.exec186(op);
           else if (op >= 0x60 && op <= 0x7f) this.jumpRel8(this.condition(op & 0x0f));
           else if (op >= 0x91 && op <= 0x97) { const t = r[AX]; r[AX] = r[op & 7]; r[op & 7] = t; }
           else if (op >= 0xb0 && op <= 0xb7) this.set8(op & 7, this.fetch8());
@@ -789,6 +796,26 @@ export class CPU {
       case 0xff: this.group5(); break;
       default:
         this.fault(`unknown opcode ${op.toString(16).toUpperCase().padStart(2, '0')}h`);
+    }
+  }
+
+  private exec186(op: number): void {
+    const r = this.regs;
+    switch (op) {
+      case 0x60: { // PUSHA
+        const sp = r[SP];
+        for (const i of [AX, CX, DX, BX]) this.push(r[i]);
+        this.push(sp);
+        for (const i of [BP, SI, DI]) this.push(r[i]);
+        break;
+      }
+      case 0x61: // POPA (the saved SP is discarded)
+        for (const i of [DI, SI, BP]) r[i] = this.pop();
+        this.pop();
+        for (const i of [BX, DX, CX, AX]) r[i] = this.pop();
+        break;
+      case 0x68: this.push(this.fetch16()); break;
+      case 0x6a: { const v = this.fetch8(); this.push(v & 0x80 ? v | 0xff00 : v); break; }
     }
   }
 

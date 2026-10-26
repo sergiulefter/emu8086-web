@@ -63,6 +63,7 @@ export class Machine {
   readonly log: string[] = [];
 
   constructor() {
+    this.cpu.allow186 = true;
     this.env.log = (line) => this.addLog(line);
     this.cpu.ports = {
       input: (port, word) => {
@@ -91,6 +92,7 @@ export class Machine {
     for (const e of result.sourceMap) {
       for (let i = 0; i < e.length; i++) lineByAddress.set(physical(loadSegment, e.address + i), e);
     }
+    this.breakpoints.clear();
     const stem = fileName.replace(/\.[^.]*$/, '') || 'noname';
     this.program = {
       fileName,

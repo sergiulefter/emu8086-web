@@ -2,6 +2,8 @@
  * 8086 disassembler producing EMU8086-style text (uppercase mnemonics,
  * `[BX + SI + 05h]` memory operands, `0B800h` immediates, `b.`/`w.` size
  * prefixes where the operand size is not implied by a register).
+ * 60h/61h/68h/6Ah are shown as the 80186 PUSHA/POPA/PUSH imm forms that the
+ * emulator executes in EMU8086-compatibility mode (see CPU.allow186).
  */
 import { REG16_NAMES, REG8_NAMES, ROM_SEGMENT, SREG_NAMES } from './cpu';
 
@@ -99,6 +101,13 @@ export function disassemble(read: ByteReader, offset: number, segment = 0): Disa
     }
   } else if (op >= 0x40 && op <= 0x5f) {
     text = `${['INC', 'DEC', 'PUSH', 'POP'][(op - 0x40) >> 3]} ${REG16_NAMES[op & 7]}`;
+  } else if (op === 0x60 || op === 0x61) {
+    text = op === 0x60 ? 'PUSHA' : 'POPA';
+  } else if (op === 0x68) {
+    text = `PUSH ${imm16()}`;
+  } else if (op === 0x6a) {
+    const i = next();
+    text = `PUSH ${hexLiteral(i & 0x80 ? 0xff00 | i : i, 4)}`;
   } else if (op >= 0x60 && op <= 0x7f) {
     const t = rel8();
     target = { offset: t };

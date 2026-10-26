@@ -300,3 +300,19 @@ describe('DOS console output', () => {
     expect(m.env.screen.getCursor()).toEqual({ row: 0, col: 13 });
   });
 });
+
+describe('EMU8086 80186 compatibility forms', () => {
+  it('PUSH immediate, PUSHA and POPA assemble (with a warning) and execute', () => {
+    const r = assemble('org 100h\nmov ax, 1111h\nmov bx, 2222h\npush 1234h\npop cx\npusha\nmov ax, 0\npopa\nret');
+    expect(r.ok).toBe(true);
+    expect(r.diagnostics.filter((d) => d.severity === 'warning').length).toBe(3);
+    const m = new Machine();
+    m.load(r, 'p.asm');
+    expect(m.disassembleAt(0x700, 0x106).text).toBe('PUSH 01234h');
+    for (let i = 0; i < 4; i++) m.step();
+    expect(m.cpu.regs[CX]).toBe(0x1234);
+    m.step(); m.step(); m.step();
+    expect(m.cpu.regs[AX]).toBe(0x1111);
+    expect(m.cpu.regs[SP]).toBe(0xfffe);
+  });
+});
