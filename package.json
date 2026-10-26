@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Locally hosted EMU8086-style 8086 assembler, emulator and debugger for the browser",
   "type": "module",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit -p . && vite build",

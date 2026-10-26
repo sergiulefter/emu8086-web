@@ -85,6 +85,7 @@ button, input, select, textarea { font-family: var(--ui-font); font-size: 12px; 
 }
 .taskbar .task span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .taskbar .task:hover { background: #dadada; }
+.taskbar .task:first-child { flex: 0 0 auto; }
 .taskbar .task.active { background: #d4d4d4; border-color: #bdbdbd; }
 .taskbar .task.minimized { color: #555; font-style: italic; }
 .taskbar .spacer { flex: 1; }

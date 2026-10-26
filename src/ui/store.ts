@@ -97,7 +97,7 @@ function defaultLayout(): Record<WinId, Omit<Win, 'id' | 'z' | 'open' | 'minimiz
     flags: { x: Math.max(10, vw - 500), y: 90, w: 220, h: 240 },
     stack: { x: Math.max(10, vw - 740), y: 110, w: 210, h: 320 },
     vars: { x: Math.max(10, vw - 690), y: 450, w: 400, h: 240 },
-    debug: { x: 160, y: 100, w: 560, h: 340 },
+    debug: { x: 160, y: 100, w: Math.min(720, vw - 20), h: 340 },
     memory: { x: 140, y: 80, w: 640, h: 380 },
     calculator: { x: 220, y: 120, w: 430, h: 280 },
     convertor: { x: 260, y: 140, w: 360, h: 280 },
