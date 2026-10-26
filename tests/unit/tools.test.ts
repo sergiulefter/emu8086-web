@@ -42,7 +42,7 @@ describe('debug.exe emulation', () => {
     expect(s.machine.cpu.regs[3]).toBe(0xff);
     expect(runDebugCommand(ctx, 'rf cy')).toContain('CY');
     expect(s.machine.cpu.flags & 1).toBe(1);
-    expect(runDebugCommand(ctx, 'd cs:107 l 3')).toContain('48 69 24');
+    expect(runDebugCommand(ctx, 'd cs:107 l 3')).toContain('48-69 24');
     expect(runDebugCommand(ctx, 'd msg l 3')).toContain('Hi$');
     expect(runDebugCommand(ctx, 'u 100 l 3')).toBe('0700:0100 B83412         MOV AX, 01234h');
     expect(runDebugCommand(ctx, "e ds:200 'AB' 43")).toBe('3 byte(s) written at 0700:0200');
