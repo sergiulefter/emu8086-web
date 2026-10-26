@@ -1,7 +1,7 @@
 /**
  * Hardware-captured conformance tests (SingleStepTests/8088 v2, MIT licence).
  * Opt-in: `npm run test:conformance` (downloads ~730 MB into .cache/).
- * CONFORMANCE_LIMIT=n limits tests per opcode file (default 2000, 0 = all).
+ * CONFORMANCE_LIMIT=n limits tests per opcode file (default 0 = all tests).
  */
 import { describe, expect, it } from 'vitest';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
@@ -12,7 +12,7 @@ import { Memory } from '../../src/cpu/memory';
 
 const dir = join(process.cwd(), '.cache', '8088-tests', 'v2');
 const enabled = process.env.CONFORMANCE === '1' && existsSync(join(dir, 'metadata.json'));
-const limit = Number(process.env.CONFORMANCE_LIMIT ?? 2000);
+const limit = Number(process.env.CONFORMANCE_LIMIT ?? 0);
 const only = process.env.CONFORMANCE_ONLY?.split(',');
 
 interface Regs { [k: string]: number }
