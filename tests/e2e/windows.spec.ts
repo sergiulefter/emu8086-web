@@ -111,3 +111,27 @@ test('new file from the code template dialog', async ({ page }) => {
   const text = await page.evaluate(() => (window as any).__studio.currentText());
   expect(text).toContain('#make_bin#');
 });
+
+test('a closed emulator can be restored from the task bar with its state intact', async ({ page }) => {
+  await pasteSource(page, fixture('T001_professor_H.asm'));
+  await page.keyboard.press('F5');
+  await page.keyboard.press('F8');
+  await page.keyboard.press('F8');
+  const emu = page.locator('[data-win=emulator]');
+  await expect(emu.locator('input[aria-label="IP"]')).toHaveValue('0105');
+  await emu.getByRole('button', { name: 'Close' }).click();
+  await expect(emu).toBeHidden();
+  const task = page.locator('.taskbar').getByRole('button', { name: /^emulator: noname\.com_/ });
+  await expect(task).toHaveClass(/minimized/);
+  await task.click();
+  await expect(emu).toBeVisible();
+  await expect(emu.locator('input[aria-label="IP"]')).toHaveValue('0105');
+  await expect(emu).toHaveClass(/active/);
+});
+
+test('windows menu can show any closed window', async ({ page }) => {
+  await page.locator('.taskbar').getByRole('button', { name: /windows/ }).click();
+  await page.getByRole('menuitem', { name: 'show' }).hover();
+  await page.getByRole('menuitem', { name: 'flags', exact: true }).click();
+  await expect(page.locator('[data-win=flags]')).toBeVisible();
+});

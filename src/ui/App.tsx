@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { store, useStore, TASK_WINDOWS, WINDOW_TITLES } from './store';
+import { store, useStore, TASK_WINDOWS, WINDOW_TITLES, type WinId } from './store';
 import * as A from './actions';
 import { MenuPopup } from './Menu';
 import { Icons } from './icons';
@@ -11,6 +11,9 @@ import {
 } from './windows/ToolWindows';
 import { AboutDialog, ConfirmDialog, GotoDialog, MessageDialog, OptionsDialog, StatusDialog, TemplateDialog } from './windows/Dialogs';
 import { AsciiWindow, CalculatorWindow, ConvertorWindow, DebugLogWindow, HelpWindow } from './windows/Utilities';
+
+/** Kept in the task bar while a program is loaded, even after being closed, so they can be restored. */
+const PINNED_WHEN_LOADED: WinId[] = ['emulator', 'screen', 'source'];
 
 const TASK_ICONS: Partial<Record<string, () => React.ReactNode>> = {
   editor: () => <Icons.appEditor />,
@@ -64,8 +67,8 @@ export function App() {
     };
   }, []);
 
-  const tasks = TASK_WINDOWS.filter((id) => s.wins[id].open);
   const m = s.session.machine;
+  const tasks = TASK_WINDOWS.filter((id) => s.wins[id].open || (m.program !== null && PINNED_WHEN_LOADED.includes(id)));
   const state = !m.program ? '' : s.session.running ? (m.waiting ? 'waiting for input' : 'running') : m.stopEvent ? 'terminated' : 'ready';
 
   return (
@@ -114,10 +117,10 @@ export function App() {
           return (
             <button
               key={id}
-              className={`task ${s.active === id && !w.minimized ? 'active' : ''} ${w.minimized ? 'minimized' : ''}`}
-              title={title}
+              className={`task ${s.active === id && w.open && !w.minimized ? 'active' : ''} ${w.minimized || !w.open ? 'minimized' : ''}`}
+              title={w.open ? title : `${title} (closed: click to show)`}
               onClick={() => {
-                if (w.minimized || s.active !== id) store.open(id);
+                if (!w.open || w.minimized || s.active !== id) store.open(id);
                 else store.minimize(id);
               }}
             >
@@ -139,6 +142,15 @@ export function App() {
             { label: 'tile', action: () => store.tile() },
             'sep',
             { label: 'reset window layout', action: () => store.resetLayout() },
+            'sep',
+            {
+              label: 'show',
+              submenu: TASK_WINDOWS.map((id) => ({
+                label: id === 'editor' ? 'source code editor' : WINDOW_TITLES[id],
+                checked: s.wins[id].open && !s.wins[id].minimized,
+                action: () => store.open(id),
+              })),
+            },
           ]}
         />
       )}
