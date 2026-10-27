@@ -283,7 +283,7 @@ class Assembler {
       return;
     }
     if (key === 'FASM' || key === 'MASM' || key === 'START' || key === 'MEM') {
-      this.warn(`#${m[1]}# is not supported by 8086 Studio and is ignored`, line, col, trimmed.length);
+      this.warn(`#${m[1]}# is not supported by emu8086-web and is ignored`, line, col, trimmed.length);
       return;
     }
     throw new AsmError(`unknown # directive: #${m[1]}#`, line, col, trimmed.length);

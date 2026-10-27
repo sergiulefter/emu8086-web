@@ -1,4 +1,4 @@
-/** Original SVG icons drawn for 8086 Studio in a late-90s toolbar style. */
+/** Original SVG icons drawn for emu8086-web in a late-90s toolbar style. */
 import type { JSX } from 'react';
 
 type P = { size?: number };

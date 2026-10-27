@@ -1,6 +1,6 @@
 # Third-party software, fonts and data
 
-8086 Studio contains **no EMU8086 code, binaries, icons, help text or library files**.
+emu8086-web contains **no EMU8086 code, binaries, icons, help text or library files**.
 - EMU8086's documentation and program resources were *read* to describe behaviour; see
   [research/EMU8086_DOC_RESEARCH.md](research/EMU8086_DOC_RESEARCH.md).
 - The candidate emulator `daohainam/emulator-8086-js` has no licence and was not used ([ADR-001](adr/ADR-001-cpu-engine.md)).

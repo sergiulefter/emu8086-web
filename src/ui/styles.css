@@ -1,5 +1,5 @@
 /*
- * 8086 Studio — classic desktop application look.
+ * emu8086-web — classic desktop application look.
  * Windows 10-style frames (as in the EMU8086 4.08 reference screenshots)
  * around VB6-era "classic" 3D controls. All artwork is original.
  */
@@ -116,6 +116,9 @@ button, input, select, textarea { font-family: var(--ui-font); font-size: 12px; 
 }
 .titlebar .ticon { width: 16px; height: 16px; margin: 0 6px 0 8px; flex: 0 0 auto; display: flex; }
 .titlebar .ttext {
+  margin: 0;
+  font-weight: normal;
+  line-height: normal;
   flex: 1 1 auto; min-width: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   color: #9a9a9a;

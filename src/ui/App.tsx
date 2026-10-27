@@ -73,7 +73,7 @@ export function App() {
 
   return (
     <>
-      <main className="desktop" aria-label="8086 Studio desktop">
+      <main className="desktop" aria-label="emu8086-web desktop">
         <EditorWindow />
         <EmulatorWindow />
         <SourceWindow />
@@ -113,7 +113,7 @@ export function App() {
         {tasks.map((id) => {
           const w = s.wins[id];
           const icon = TASK_ICONS[id]?.() ?? <Icons.appTool />;
-          const title = id === 'emulator' && m.program ? `emulator: ${m.program.executableName}` : id === 'editor' ? `8086 Studio - ${s.fileName}` : WINDOW_TITLES[id];
+          const title = id === 'emulator' && m.program ? `emulator: ${m.program.executableName}` : id === 'editor' ? `emu8086-web - ${s.fileName}` : WINDOW_TITLES[id];
           return (
             <button
               key={id}

@@ -1,7 +1,7 @@
 # UI control inventory
 
 This lists every visible or documented EMU8086 4.08 menu item, toolbar button and bottom button, with what
-8086 Studio does for it.
+emu8086-web does for it.
 
 Evidence IDs refer to [research/EMU8086_DOC_RESEARCH.md §0](research/EMU8086_DOC_RESEARCH.md):
 - **D-EMU, D-COMP, D-START, D-EDIT, D-INT, D-MEM, D-DEBUG, D-TUT**: the official EMU8086 help pages
@@ -20,7 +20,7 @@ Confidence is the confidence in the *EMU8086 behaviour* being reproduced.
 
 ### Menu bar `file · edit · bookmarks · assembler · emulator · math · ascii codes · help` (BIN, REF-01, REF-02)
 
-| Menu | Label | Purpose / effect in 8086 Studio | Preconditions | Shortcut | Evidence | Status | Conf. |
+| Menu | Label | Purpose / effect in emu8086-web | Preconditions | Shortcut | Evidence | Status | Conf. |
 |---|---|---|---|---|---|---|---|
 | file | new ▸ com template | Replaces the document with the COM template (`org 100h … ret`); asks first if there are unsaved changes | — | — | BIN, TPL | implemented | high |
 | file | new ▸ exe template | EXE programs are not supported | — | — | BIN, TPL | disabled | high |

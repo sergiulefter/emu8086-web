@@ -1,5 +1,5 @@
 /**
- * Example programs bundled with 8086 Studio (original code written for this
+ * Example programs bundled with emu8086-web (original code written for this
  * project, plus the two classroom programs from the course).
  * Every example is assembled and executed by tests/integration/examples.test.ts.
  */
@@ -337,7 +337,7 @@ next_color:
 
 export const TEMPLATES = {
   com: `; You may customize this and other start-up templates;
-; this is the 8086 Studio COM template.
+; this is the emu8086-web COM template.
 
 org 100h
 
@@ -367,7 +367,7 @@ ret
 HLT           ; halt!
 `,
   boot: `; a boot record is loaded by the BIOS at 0000:7C00.
-; 8086 Studio loads it there directly (no virtual floppy).
+; emu8086-web loads it there directly (no virtual floppy).
 
 #make_boot#
 org 7c00h

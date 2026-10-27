@@ -104,7 +104,8 @@ export function Window({
         }}
       >
         <span className="ticon">{icon}</span>
-        <span className="ttext">{title}</span>
+        {/* window titles are the page's headings: the main editor window is the h1 */}
+        {id === 'editor' ? <h1 className="ttext">{title}</h1> : <h2 className="ttext">{title}</h2>}
         {!tool && minimizable && (
           <button className="tbtn" title="Minimize" aria-label="Minimize" onClick={() => s.minimize(id)}>
             <svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 5.5h10" stroke="currentColor" /></svg>

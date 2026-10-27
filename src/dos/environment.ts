@@ -251,7 +251,7 @@ export class DosEnvironment {
   }
 
   private unsupported(what: string): void {
-    this.stop('unsupported', `${what} is not supported by 8086 Studio. Execution stopped (no fake result was produced).`);
+    this.stop('unsupported', `${what} is not supported by emu8086-web. Execution stopped (no fake result was produced).`);
   }
 
   private service(c: CPU, vector: number, stubIp: number): void {

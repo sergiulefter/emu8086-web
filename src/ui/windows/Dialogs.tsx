@@ -244,10 +244,10 @@ export function OptionsDialog() {
 // ------------------------------------------------------------ about
 export function AboutDialog() {
   return (
-    <Window id="about" title="about 8086 Studio" icon={<Icons.appTool />} tool resizable={false}>
+    <Window id="about" title="about emu8086-web" icon={<Icons.appTool />} tool resizable={false}>
       <div className="dlg">
         <div className="msg-body" style={{ flexDirection: 'column', gap: 6 }}>
-          <b style={{ fontSize: 14 }}>8086 Studio 1.0</b>
+          <b style={{ fontSize: 14 }}>emu8086-web 1.0</b>
           <span>assembler and microprocessor emulator for the browser, modelled on the EMU8086 4.08 workflow used in class.</span>
           <span>Runs entirely in this browser tab: no server, account or network access.</span>
           <span style={{ color: '#555' }}>

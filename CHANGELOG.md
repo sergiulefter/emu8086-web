@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+- **Renamed to emu8086-web** everywhere the name is user-facing: page title, window titles, about and help
+  windows, messages, README, docs and package metadata. Saved browser data keeps working; its internal storage
+  keys are unchanged.
+- **Search and sharing:**
+  - page title, description and canonical URL; Open Graph and Twitter cards with a real screenshot
+    (`public/og-image.png`, 1200×630)
+  - `WebApplication` JSON-LD
+  - a real text description in the initial HTML plus a `<noscript>` message
+  - favicon files, `robots.txt` and `sitemap.xml`
+- **Window titles are headings** (`h1` for the editor, `h2` for the others) for document structure. They look
+  exactly the same.
+- **README** rewritten for a public audience: features, platforms, use cases, EMU8086 compatibility and an FAQ.
+  New `docs/SEARCH_ENGINE_SETUP.md` and `docs/AI_DISCOVERY.md`.
+- **Checks:** SEO tests (`tests/unit/seo.test.ts`) and a post-build check (`npm run check:seo`). The deploy workflow
+  runs the post-build check before publishing.
+
 ## 1.0.0 — 2026-10-26
 
 First complete release.

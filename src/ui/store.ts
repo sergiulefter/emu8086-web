@@ -50,7 +50,7 @@ const DOC_KEY = '8086studio.document.v1';
 const SETTINGS_KEY = '8086studio.settings.v1';
 
 export const DEFAULT_SOURCE = `; You may customize this and other start-up templates;
-; this is the 8086 Studio COM template.
+; this is the emu8086-web COM template.
 
 org 100h
 
@@ -118,7 +118,7 @@ function defaultLayout(): Record<WinId, Omit<Win, 'id' | 'z' | 'open' | 'minimiz
 }
 
 export const WINDOW_TITLES: Record<WinId, string> = {
-  editor: '8086 Studio - assembler and microprocessor emulator',
+  editor: 'emu8086-web - assembler and microprocessor emulator',
   emulator: 'emulator',
   screen: 'emulator screen (80x25 chars)',
   source: 'original source code',
@@ -133,7 +133,7 @@ export const WINDOW_TITLES: Record<WinId, string> = {
   ascii: 'ascii codes',
   options: 'options',
   help: 'documentation and tutorials',
-  about: 'about 8086 Studio',
+  about: 'about emu8086-web',
   status: 'assembler status',
   message: 'message',
   symbols: 'symbol table',

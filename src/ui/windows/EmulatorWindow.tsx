@@ -14,7 +14,7 @@ import { loadExecutableFile } from '../loadExecutable';
 import { parseAddress } from '../addressParser';
 
 const ROW = 14;
-const unavailable = 'not available in the browser version of 8086 Studio';
+const unavailable = 'not available in the browser version of emu8086-web';
 
 function emulatorMenus(): MenuDef[] {
   const m = store.session.machine;

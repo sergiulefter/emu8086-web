@@ -193,7 +193,7 @@ export function HelpWindow() {
   return (
     <Window id="help" title="documentation and tutorials" icon={<Icons.help size={16} />}>
       <div className="help-body">
-        <h2>8086 Studio — quick guide</h2>
+        <h2>emu8086-web — quick guide</h2>
         <p>
           Write or paste an 8086 program in the editor, then press <b>emulate</b> (F5). The program is assembled and
           loaded into the <b>emulator</b> window; nothing runs until you press <b>single step</b> (F8) or <b>run</b> (F9).

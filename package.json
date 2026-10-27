@@ -1,8 +1,8 @@
 {
-  "name": "8086-studio",
+  "name": "emu8086-web",
   "private": true,
   "version": "1.0.0",
-  "description": "Locally hosted EMU8086-style 8086 assembler, emulator and debugger for the browser",
+  "description": "Free online Intel 8086 assembler, emulator and debugger. Run and debug EMU8086-style assembly programs directly in your browser.",
   "type": "module",
   "license": "UNLICENSED",
   "scripts": {
@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:conformance": "node scripts/fetch-conformance.mjs && CONFORMANCE=1 vitest run tests/conformance"
+    "test:conformance": "node scripts/fetch-conformance.mjs && CONFORMANCE=1 vitest run tests/conformance",
+    "check:seo": "node scripts/check-seo.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",
@@ -35,5 +36,19 @@
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
     "vitest": "^5.0.5"
-  }
+  },
+  "homepage": "https://sergiulefter.github.io/emu8086-web/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sergiulefter/emu8086-web.git"
+  },
+  "keywords": [
+    "8086",
+    "emu8086",
+    "x86-assembly",
+    "assembler",
+    "emulator",
+    "debugger",
+    "education"
+  ]
 }

@@ -258,7 +258,7 @@ export function EditorWindow() {
   return (
     <Window
       id="editor"
-      title={`8086 Studio - assembler and microprocessor emulator - ${s.fileName}${s.dirty ? ' *' : ''}`}
+      title={`emu8086-web - assembler and microprocessor emulator - ${s.fileName}${s.dirty ? ' *' : ''}`}
       icon={<Icons.appEditor />}
       minW={420}
       minH={260}
@@ -288,7 +288,7 @@ export function EditorWindow() {
         <ToolButton icon={<Icons.convertor />} label="convertor" title="base convertor" onClick={() => store.open('convertor')} />
         <ToolButton icon={<Icons.options />} label="options" title="Font and other Settings" onClick={() => store.open('options')} />
         <ToolButton icon={<Icons.help />} label="help" title="Documentation & Tutorials (F1)" onClick={A.openHelp} />
-        <ToolButton icon={<Icons.about />} label="about" title="About 8086 Studio" onClick={() => store.open('about')} />
+        <ToolButton icon={<Icons.about />} label="about" title="About emu8086-web" onClick={() => store.open('about')} />
       </div>
       <div
         className={`editor-host ${dragOver ? 'dragover' : ''}`}

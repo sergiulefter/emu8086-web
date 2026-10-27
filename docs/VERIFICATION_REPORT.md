@@ -1,5 +1,7 @@
 # Verification report
 
+> Part of **emu8086-web**, the free online 8086 assembler, emulator and debugger: [open the live emulator](https://sergiulefter.github.io/emu8086-web/) · [README and FAQ](../README.md) · [architecture](ARCHITECTURE.md) · [support matrix](SUPPORT_MATRIX.md) · [known differences](KNOWN_UI_DIFFERENCES.md) · [verification report](VERIFICATION_REPORT.md)
+
 **Date:** 2026-10-26
 **Environment:** Linux, Node 22.23.1, Chromium (Playwright build 1248), Firefox (Playwright build)
 
@@ -7,8 +9,9 @@
 
 | Suite | Command | Result |
 |---|---|---|
-| Unit + integration (Vitest) | `npm test` | **314 / 314 passed** |
-| End-to-end, Chromium + Firefox (Playwright) | `npm run test:e2e` | **32 / 32 passed** (16 scenarios × 2 browsers) |
+| Unit + integration (Vitest) | `npm test` | **327 / 327 passed** (including 13 SEO and metadata tests) |
+| End-to-end, Chromium + Firefox (Playwright) | `npm run test:e2e` | **36 / 36 passed** (18 scenarios × 2 browsers) |
+| Production build SEO check | `npm run build && npm run check:seo` | passed (metadata, JSON-LD, relative asset paths, robots.txt, sitemap.xml, social image) |
 | CPU hardware conformance (SingleStepTests/8088 v2, every test of every file) | `npm run test:conformance` | **323 / 323 opcode files passed** |
 | Type check | `npm run typecheck` | clean |
 | Clean checkout | `git archive` → `npm ci` → typecheck → test → build | passed |

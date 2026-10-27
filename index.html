@@ -3,14 +3,98 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="8086 Studio: a locally hosted 8086 assembler, emulator and debugger in the style of EMU8086" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='1' width='14' height='14' fill='%231d8f3a'/%3E%3Cpath d='M4 5h8M4 8h8M4 11h5' stroke='%23bff3c9' stroke-width='1.4'/%3E%3C/svg%3E" />
+    <title>emu8086-web — Free Online 8086 Emulator &amp; Assembler</title>
+    <meta name="description" content="Run Intel 8086 assembly online with emu8086-web, a free browser-based assembler, emulator and debugger with registers, memory inspection, breakpoints and step-by-step execution. No installation required." />
+    <link rel="canonical" href="https://sergiulefter.github.io/emu8086-web/" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#f3f3f3" />
+    <meta name="application-name" content="emu8086-web" />
+    <meta name="author" content="Sergiu Lefter" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="emu8086-web" />
+    <meta property="og:title" content="emu8086-web — Online 8086 Assembler, Emulator &amp; Debugger" />
+    <meta property="og:description" content="Write, assemble, run and debug Intel 8086 assembly in your browser: registers, memory, breakpoints, step back and an 80×25 text screen. Free, no installation." />
+    <meta property="og:url" content="https://sergiulefter.github.io/emu8086-web/" />
+    <meta property="og:image" content="https://sergiulefter.github.io/emu8086-web/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="emu8086-web running an 8086 program: editor, emulator registers and memory, and the 80×25 text screen" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="emu8086-web — Online 8086 Assembler, Emulator &amp; Debugger" />
+    <meta name="twitter:description" content="Write, assemble, run and debug Intel 8086 assembly in your browser. Free, no installation." />
+    <meta name="twitter:image" content="https://sergiulefter.github.io/emu8086-web/og-image.png" />
+    <meta name="twitter:image:alt" content="emu8086-web running an 8086 program: editor, emulator registers and memory, and the 80×25 text screen" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "emu8086-web",
+        "alternateName": "emu8086-web — Online 8086 Assembler, Emulator & Debugger",
+        "description": "A free browser-based Intel 8086 assembler, emulator and debugger for writing, executing and debugging assembly programs online, with an EMU8086-style interface.",
+        "url": "https://sergiulefter.github.io/emu8086-web/",
+        "image": "https://sergiulefter.github.io/emu8086-web/og-image.png",
+        "applicationCategory": "DeveloperApplication",
+        "applicationSubCategory": "Assembler and CPU emulator",
+        "operatingSystem": "Any operating system with a modern web browser (Windows, macOS, Linux, ChromeOS)",
+        "browserRequirements": "Requires JavaScript. Tested in Chrome and Firefox.",
+        "inLanguage": "en",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "featureList": [
+          "Intel 8086 CPU emulation",
+          "EMU8086/MASM-style assembler with line and column error messages",
+          "Single step, step over, step back and run with breakpoints",
+          "Editable registers, flags, memory, stack and variables",
+          "DOS and BIOS interrupts (INT 21h, INT 10h, INT 16h, INT 20h)",
+          "80×25 colour text-mode screen at B800:0000",
+          "Example programs and code templates"
+        ],
+        "author": { "@type": "Person", "name": "Sergiu Lefter", "url": "https://github.com/sergiulefter" },
+        "sameAs": ["https://github.com/sergiulefter/emu8086-web"]
+      }
+    </script>
+
+    <style>
+      /* pre-mount description (replaced by the app as soon as JavaScript runs) */
+      .boot { max-width: 760px; margin: 16px; font: 13px/1.5 'Segoe UI', Tahoma, 'DejaVu Sans', Arial, sans-serif; color: #333; }
+      .boot h1 { font-size: 16px; margin: 0 0 8px; }
+      .boot p { margin: 0 0 8px; }
+    </style>
     <link rel="preload" href="/fonts/Web437_IBM_VGA_8x14.woff" as="font" type="font/woff" crossorigin />
     <link rel="preload" href="/fonts/Web437_IBM_VGA_9x16.woff" as="font" type="font/woff" crossorigin />
-    <title>8086 Studio</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!--
+        Shown only until the app mounts (React replaces the contents of #root).
+        This is a real description for browsers and crawlers that do not run JavaScript.
+      -->
+      <main class="boot" aria-busy="true">
+        <h1>emu8086-web — Online 8086 Assembler, Emulator &amp; Debugger</h1>
+        <p>
+          emu8086-web is a free, browser-based Intel 8086 assembler, emulator and debugger inspired by the EMU8086
+          workflow. Write 8086 assembly, assemble it and step through it instruction by instruction, while watching
+          the registers, flags, memory, stack and an 80×25 text screen. Nothing is installed: everything runs in your browser.
+        </p>
+        <p>Loading the emulator…</p>
+        <p>
+          <a href="https://github.com/sergiulefter/emu8086-web">Source code, documentation and FAQ on GitHub</a>.
+          emu8086-web is an independent project and is not affiliated with the original EMU8086 software.
+        </p>
+      </main>
+      <noscript>
+        <p class="boot">
+          <strong>emu8086-web needs JavaScript.</strong> It is an interactive 8086 emulator that runs entirely in your
+          browser, so please enable JavaScript to use it.
+        </p>
+      </noscript>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
