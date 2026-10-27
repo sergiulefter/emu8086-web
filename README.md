@@ -8,6 +8,8 @@ A program that ends with `RET` returns to DOS and shows *PROGRAM HAS RETURNED CO
 Everything runs inside the browser tab. You do not need a server, an account, Docker, Electron or a `.deb`
 package, and the app makes no network requests once its dependencies are installed.
 
+**Use it online:** https://sergiulefter.github.io/emu8086-web/ (no installation; it still runs entirely in your browser).
+
 ![Professor's H program after six single steps](docs/screenshots/02-professor-H-stepped.png)
 
 ## Install and start (Linux)
@@ -27,6 +29,15 @@ To serve the optimised build instead:
 npm run build
 npm run preview        # http://localhost:4173
 ```
+
+## Deployment
+
+Every push to `main` (including merged pull requests) runs `.github/workflows/deploy.yml`. The workflow
+type-checks the code, runs the unit and integration tests, builds the site and publishes it to GitHub Pages. If
+any step fails, the live site is left unchanged. To re-deploy without a commit, open **Actions → Deploy to GitHub
+Pages → Run workflow**.
+
+Production builds use relative asset paths, so `dist/` works when served from any folder.
 
 ## Using it
 
