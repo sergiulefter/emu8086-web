@@ -9,7 +9,7 @@
 
 | Suite | Command | Result |
 |---|---|---|
-| Unit + integration (Vitest) | `npm test` | **330 / 330 passed** (including 13 SEO and 3 licence tests) |
+| Unit + integration (Vitest) | `npm test` | **332 / 332 passed** (including 15 SEO and 3 licence tests) |
 | End-to-end, Chromium + Firefox (Playwright) | `npm run test:e2e` | **36 / 36 passed** (18 scenarios × 2 browsers) |
 | Production build SEO check | `npm run build && npm run check:seo` | passed (metadata, JSON-LD, relative asset paths, robots.txt, sitemap.xml, social image) |
 | CPU hardware conformance (SingleStepTests/8088 v2, every test of every file) | `npm run test:conformance` | **323 / 323 opcode files passed** |

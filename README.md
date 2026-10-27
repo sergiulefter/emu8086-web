@@ -5,6 +5,9 @@
 you can watch the registers, flags, memory, stack and the 80×25 text screen at `B800:0000`. Nothing needs to be
 installed, and everything runs inside your browser tab.
 
+It was created to make EMU8086-style assembly programming accessible from Linux, without installing Windows
+applications, Wine or a virtual machine.
+
 **▶ Open the emulator: https://sergiulefter.github.io/emu8086-web/**
 
 ![emu8086-web running an 8086 program that writes "H" to video memory, after six single steps](docs/screenshots/02-professor-H-stepped.png)

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **Search positioning:** the page title now reads `emu8086-web | Free Online 8086 Emulator & Assembler`. The
+  description, social cards and structured data present the app as a browser-based, EMU8086-style alternative
+  that works on Linux. The text before the app loads now explains the problem it solves. The interface is
+  unchanged.
 - **Licensed under the MIT License** (`LICENSE`; `"license": "MIT"` in `package.json`). Third-party packages, the
   fonts and quoted or course material keep their own terms; see `docs/THIRD_PARTY_NOTICES.md`.
 - **Builds now ship `LICENSES.txt`** with the full licence texts of all bundled packages. The minified bundle

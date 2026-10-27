@@ -27,7 +27,7 @@ describe('index.html metadata', () => {
     expect(html).toMatch(/<meta charset="UTF-8" \/>/);
     expect(meta('name', 'viewport')).toEqual(['width=device-width, initial-scale=1.0']);
     const titles = [...html.matchAll(/<title>([^<]*)<\/title>/g)].map((m) => m[1]);
-    expect(titles).toEqual(['emu8086-web — Free Online 8086 Emulator &amp; Assembler']);
+    expect(titles).toEqual(['emu8086-web | Free Online 8086 Emulator &amp; Assembler']);
   });
 
   it('has one meta description of a search-result friendly length', () => {
@@ -36,6 +36,20 @@ describe('index.html metadata', () => {
     expect(d[0].length).toBeGreaterThan(70);
     expect(d[0].length).toBeLessThanOrEqual(230);
     expect(d[0]).toContain('emu8086-web');
+    // positioning: EMU8086-style experience, Linux, browser, no installation
+    for (const phrase of ['EMU8086-style', 'Linux', 'browser', 'without installation']) expect(d[0]).toContain(phrase);
+  });
+
+  it('social titles use the "|" title format and describe the EMU8086-style experience', () => {
+    for (const t of [...meta('property', 'og:title'), ...meta('name', 'twitter:title')]) {
+      expect(t).toBe('emu8086-web | Online EMU8086-Style Emulator &amp; Debugger');
+    }
+    expect(meta('property', 'og:description')[0]).toMatch(/EMU8086 alternative[\s\S]*Linux/);
+    expect(meta('name', 'twitter:description')[0]).toMatch(/EMU8086 alternative[\s\S]*Linux/);
+  });
+
+  it('never overclaims compatibility with the original EMU8086', () => {
+    expect(html).not.toMatch(/100\s*%|identical to|official EMU8086|every EMU8086 feature|perfect (EMU8086 )?clone|fully compatible/i);
   });
 
   it('has exactly one canonical URL and no noindex', () => {
@@ -76,6 +90,8 @@ describe('index.html metadata', () => {
   it('has a real description and a noscript message before the app mounts', () => {
     const rootDiv = html.slice(html.indexOf('<div id="root">'), html.indexOf('<script type="module"'));
     expect(rootDiv).toMatch(/<h1>emu8086-web/);
+    expect(rootDiv).toContain('alternative to EMU8086');
+    expect(rootDiv).toMatch(/Chrome and Firefox on Linux, without Wine or a\s+virtual machine/);
     expect(rootDiv).toContain('not affiliated with the original EMU8086');
     expect(rootDiv).toMatch(/<noscript>[\s\S]*needs JavaScript/);
     // no hidden text tricks
