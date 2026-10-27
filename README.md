@@ -128,8 +128,8 @@ Yes. Use **open** or drag an `.asm` file onto the editor. The emulator's **Load*
 and `.bin` files. Files stay on your computer; nothing is uploaded to a server.
 
 **Is emu8086-web affiliated with the original EMU8086?**
-No. It is an independent project with its own code and artwork, and its source is public on GitHub. It contains
-no EMU8086 code, binaries, icons or library files.
+No. It is an independent, open-source project (MIT License) with its own code and artwork. It contains no EMU8086
+code, binaries, icons or library files.
 
 **What are its limitations?**
 - It emulates an 8086 with the DOS and BIOS services that coursework typically uses. It is not a full PC.
@@ -234,6 +234,18 @@ docs/              architecture, ADRs, UI inventory/evidence, support matrix, ve
 - [Search engine setup](docs/SEARCH_ENGINE_SETUP.md) and [AI search discovery](docs/AI_DISCOVERY.md)
 - [Third-party notices](docs/THIRD_PARTY_NOTICES.md): libraries, fonts and test data with their licences
 - [Changelog](CHANGELOG.md)
+
+## License
+
+emu8086-web is licensed under the **MIT License**; see the [LICENSE](LICENSE) file. Copyright (c) 2026 Sergiu Lefter.
+
+Bundled third-party components keep their own licences and are not relicensed under MIT:
+- React and CodeMirror are MIT.
+- The IBM VGA fonts are CC BY-SA 4.0.
+
+The live site lists all of them at [LICENSES.txt](https://sergiulefter.github.io/emu8086-web/LICENSES.txt).
+[docs/THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md) has the details, including the material the MIT
+License does not cover.
 
 emu8086-web is an independent project and is not affiliated with EMU8086 or its authors. It contains no EMU8086
 code, binaries, icons or library files; all artwork is original.

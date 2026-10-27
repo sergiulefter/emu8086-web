@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Free online Intel 8086 assembler, emulator and debugger. Run and debug EMU8086-style assembly programs directly in your browser.",
   "type": "module",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit -p . && vite build",

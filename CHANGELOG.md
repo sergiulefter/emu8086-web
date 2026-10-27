@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **Licensed under the MIT License** (`LICENSE`; `"license": "MIT"` in `package.json`). Third-party packages, the
+  fonts and quoted or course material keep their own terms; see `docs/THIRD_PARTY_NOTICES.md`.
+- **Builds now ship `LICENSES.txt`** with the full licence texts of all bundled packages. The minified bundle
+  dropped their licence comments, so the deployed site was missing the MIT notices those packages require.
+
 - **Renamed to emu8086-web** everywhere the name is user-facing: page title, window titles, about and help
   windows, messages, README, docs and package metadata. Saved browser data keeps working; its internal storage
   keys are unchanged.
