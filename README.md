@@ -179,7 +179,7 @@ For automatic deployments, connect `sergiulefter/emu8086-web` under the `emu8086
 - Root directory: `/`
 - Build command: `npm run build:cloudflare`
 - Deploy command: `npx wrangler deploy`
-- Build environment variable: `NODE_VERSION=22.23.1`
+- Node.js version: read automatically from `.node-version` (also used by GitHub CI)
 
 Once connected, direct pushes and PR merges into `main` deploy automatically. The build command runs
 tests, type checking, production bundling and SEO validation before publishing; a failed build leaves
