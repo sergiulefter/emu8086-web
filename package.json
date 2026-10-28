@@ -14,7 +14,11 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:conformance": "node scripts/fetch-conformance.mjs && CONFORMANCE=1 vitest run tests/conformance",
-    "check:seo": "node scripts/check-seo.mjs"
+    "check:seo": "node scripts/check-seo.mjs",
+    "build:cloudflare": "npm test && npm run build && npm run check:seo",
+    "preview:cloudflare": "npm run build && wrangler dev",
+    "deploy:check": "npm run build:cloudflare && wrangler deploy --dry-run",
+    "deploy": "npm run build:cloudflare && wrangler deploy"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",
@@ -35,9 +39,10 @@
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "wrangler": "^4.154.0"
   },
-  "homepage": "https://sergiulefter.github.io/emu8086-web/",
+  "homepage": "https://emu8086.sergiulefter.com/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sergiulefter/emu8086-web.git"

@@ -1,8 +1,6 @@
 # emu8086-web: every crawler may access the whole application.
-# Note: crawlers read robots.txt only at the host root (https://sergiulefter.github.io/robots.txt).
-# This copy documents the intended policy and the sitemap location; submit the sitemap in
-# Google Search Console / Bing Webmaster Tools (see docs/SEARCH_ENGINE_SETUP.md).
+# Served at the root of https://emu8086.sergiulefter.com/.
 User-agent: *
 Allow: /
 
-Sitemap: https://sergiulefter.github.io/emu8086-web/sitemap.xml
+Sitemap: https://emu8086.sergiulefter.com/sitemap.xml

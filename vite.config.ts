@@ -58,7 +58,7 @@ function bundledLicenses(): Plugin {
 
 export default defineConfig(({ command }) => ({
   // Production builds use relative URLs so the same dist/ works at any path,
-  // e.g. GitHub Pages (https://<user>.github.io/emu8086-web/) or `npm run preview`.
+  // e.g. Cloudflare static hosting or `npm run preview`.
   base: command === 'build' ? './' : '/',
   plugins: [react(), bundledLicenses()],
   server: { port: 5173, strictPort: false },

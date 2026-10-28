@@ -9,7 +9,7 @@ import { dirname, join, normalize } from 'node:path';
 const root = process.cwd();
 const read = (p: string) => readFileSync(join(root, p), 'utf8');
 const html = read('index.html');
-const SITE = 'https://sergiulefter.github.io/emu8086-web/';
+const SITE = 'https://emu8086.sergiulefter.com/';
 
 const meta = (attr: 'name' | 'property', key: string): string[] =>
   [...html.matchAll(new RegExp(`<meta\\s+${attr}="${key}"\\s+content="([^"]*)"`, 'g'))].map((m) => m[1]);

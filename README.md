@@ -8,7 +8,7 @@ installed, and everything runs inside your browser tab.
 It was created to make EMU8086-style assembly programming accessible from Linux, without installing Windows
 applications, Wine or a virtual machine.
 
-**▶ Open the emulator: https://sergiulefter.github.io/emu8086-web/**
+**▶ Open the emulator: https://emu8086.sergiulefter.com/**
 
 ![emu8086-web running an 8086 program that writes "H" to video memory, after six single steps](docs/screenshots/02-professor-H-stepped.png)
 
@@ -97,7 +97,7 @@ A free Intel 8086 assembler, emulator and debugger that runs in a web browser. I
 follows its workflow: write code, press *emulate*, then step through it while watching the CPU state.
 
 **Can I run 8086 assembly code online?**
-Yes. Open https://sergiulefter.github.io/emu8086-web/, paste your program and press **emulate** (F5), then
+Yes. Open https://emu8086.sergiulefter.com/, paste your program and press **emulate** (F5), then
 **run** (F9) or **single step** (F8).
 
 **Does emu8086-web require installation?**
@@ -144,7 +144,7 @@ See [docs/KNOWN_UI_DIFFERENCES.md](docs/KNOWN_UI_DIFFERENCES.md).
 
 ## Run it locally
 
-Requirements: **Node.js 20 or newer** and npm. Node 22 LTS was used for testing.
+Requirements: **Node.js 22.12 or newer** and npm. Node 22 LTS was used for testing.
 
 ```bash
 npm install
@@ -163,10 +163,32 @@ npm run preview        # http://localhost:4173
 
 ## Deployment
 
-Every push to `main`, including merged pull requests, runs `.github/workflows/deploy.yml`. The workflow
-type-checks the code, runs the tests, builds the site, checks the built HTML (metadata, structured data, asset
-paths) and publishes it to GitHub Pages. If any step fails, the live site is left unchanged. To re-deploy
-without a commit, open **Actions → Deploy to GitHub Pages → Run workflow**.
+The app is hosted on Cloudflare Workers at **https://emu8086.sergiulefter.com/**.
+`wrangler.jsonc` serves `dist/` and attaches the custom domain with managed DNS and HTTPS.
+
+```bash
+npx wrangler login
+npm run deploy:check    # tests, type check, build, SEO validation and deployment dry run
+npm run deploy          # the same checks, then publish to Cloudflare
+```
+
+For automatic deployments, connect `sergiulefter/emu8086-web` under the `emu8086` Worker's
+**Settings → Builds** in Cloudflare:
+
+- Production branch: `main`
+- Root directory: `/`
+- Build command: `npm run build:cloudflare`
+- Deploy command: `npx wrangler deploy`
+- Build environment variable: `NODE_VERSION=22.23.1`
+
+Once connected, direct pushes and PR merges into `main` deploy automatically. The build command runs
+tests, type checking, production bundling and SEO validation before publishing; a failed build leaves
+the previous deployment live. GitHub's `.github/workflows/ci.yml` also checks pushes and pull requests,
+without publishing to GitHub Pages.
+
+The hostname change creates a new browser storage origin. Programs saved only in local storage on the
+old GitHub Pages site do not transfer automatically; export them from the old site before it is retired
+and import them into the new site.
 
 Production builds use relative asset paths, so `dist/` works when served from any folder.
 
@@ -222,7 +244,7 @@ docs/              architecture, ADRs, UI inventory/evidence, support matrix, ve
 
 ## Documentation
 
-- [Live emulator](https://sergiulefter.github.io/emu8086-web/) and the
+- [Live emulator](https://emu8086.sergiulefter.com/) and the
   [GitHub repository](https://github.com/sergiulefter/emu8086-web)
 - [Architecture overview](docs/ARCHITECTURE.md): how the assembler, CPU, DOS layer, screen and debugger fit together
 - [Architecture decision records](docs/adr/) (ADR-001 to ADR-006): CPU engine, assembler, DOS/PSP, VGA text mode,
@@ -246,7 +268,7 @@ Bundled third-party components keep their own licences and are not relicensed un
 - React and CodeMirror are MIT.
 - The IBM VGA fonts are CC BY-SA 4.0.
 
-The live site lists all of them at [LICENSES.txt](https://sergiulefter.github.io/emu8086-web/LICENSES.txt).
+The live site lists all of them at [LICENSES.txt](https://emu8086.sergiulefter.com/LICENSES.txt).
 [docs/THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md) has the details, including the material the MIT
 License does not cover.
 

@@ -1,12 +1,12 @@
 // Checks the production build in dist/ (run after `npm run build`):
 // metadata and JSON-LD survived the build, every local asset reference is
-// relative (works under the GitHub Pages /emu8086-web/ sub-path) and exists,
+// relative (keeps the build portable between hosts) and exists,
 // and the crawler / social files were copied. Exits non-zero on any problem.
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const dist = join(process.cwd(), 'dist');
-const SITE = 'https://sergiulefter.github.io/emu8086-web/';
+const SITE = 'https://emu8086.sergiulefter.com/';
 const problems = [];
 const check = (ok, msg) => { if (!ok) problems.push(msg); };
 
@@ -39,7 +39,7 @@ if (ld) {
 for (const m of html.matchAll(/\s(?:src|href)="([^"]+)"/g)) {
   const url = m[1];
   if (/^(https?:|data:|#|mailto:)/.test(url)) continue;
-  check(!url.startsWith('/'), `root-absolute URL breaks under /emu8086-web/: ${url}`);
+  check(!url.startsWith('/'), `expected a portable relative asset URL: ${url}`);
   check(existsSync(join(dist, url.replace(/^\.\//, ''))), `referenced file missing from dist: ${url}`);
 }
 // CSS url() references

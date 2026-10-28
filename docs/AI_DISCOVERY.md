@@ -1,6 +1,6 @@
 # Discovery by search engines and AI-assisted search
 
-> Part of **emu8086-web**, the free online 8086 assembler, emulator and debugger: [open the live emulator](https://sergiulefter.github.io/emu8086-web/) · [README and FAQ](../README.md) · [architecture](ARCHITECTURE.md) · [support matrix](SUPPORT_MATRIX.md) · [known differences](KNOWN_UI_DIFFERENCES.md) · [verification report](VERIFICATION_REPORT.md)
+> Part of **emu8086-web**, the free online 8086 assembler, emulator and debugger: [open the live emulator](https://emu8086.sergiulefter.com/) · [README and FAQ](../README.md) · [architecture](ARCHITECTURE.md) · [support matrix](SUPPORT_MATRIX.md) · [known differences](KNOWN_UI_DIFFERENCES.md) · [verification report](VERIFICATION_REPORT.md)
 
 This file explains, without guarantees, how people and AI search tools can find emu8086-web, and what has been
 done in the repository to help.

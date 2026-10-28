@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "emu8086",
+  "compatibility_date": "2026-10-28",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "none"
+  },
+  "routes": [
+    { "pattern": "emu8086.sergiulefter.com", "custom_domain": true }
+  ]
+}

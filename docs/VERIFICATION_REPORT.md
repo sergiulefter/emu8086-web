@@ -1,6 +1,6 @@
 # Verification report
 
-> Part of **emu8086-web**, the free online 8086 assembler, emulator and debugger: [open the live emulator](https://sergiulefter.github.io/emu8086-web/) · [README and FAQ](../README.md) · [architecture](ARCHITECTURE.md) · [support matrix](SUPPORT_MATRIX.md) · [known differences](KNOWN_UI_DIFFERENCES.md) · [verification report](VERIFICATION_REPORT.md)
+> Part of **emu8086-web**, the free online 8086 assembler, emulator and debugger: [open the live emulator](https://emu8086.sergiulefter.com/) · [README and FAQ](../README.md) · [architecture](ARCHITECTURE.md) · [support matrix](SUPPORT_MATRIX.md) · [known differences](KNOWN_UI_DIFFERENCES.md) · [verification report](VERIFICATION_REPORT.md)
 
 **Date:** 2026-10-26
 **Environment:** Linux, Node 22.23.1, Chromium (Playwright build 1248), Firefox (Playwright build)

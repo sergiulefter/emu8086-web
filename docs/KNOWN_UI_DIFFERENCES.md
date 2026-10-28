@@ -1,6 +1,6 @@
 # Known differences from EMU8086 and limitations
 
-> Part of **emu8086-web**, the free online 8086 assembler, emulator and debugger: [open the live emulator](https://sergiulefter.github.io/emu8086-web/) · [README and FAQ](../README.md) · [architecture](ARCHITECTURE.md) · [support matrix](SUPPORT_MATRIX.md) · [known differences](KNOWN_UI_DIFFERENCES.md) · [verification report](VERIFICATION_REPORT.md)
+> Part of **emu8086-web**, the free online 8086 assembler, emulator and debugger: [open the live emulator](https://emu8086.sergiulefter.com/) · [README and FAQ](../README.md) · [architecture](ARCHITECTURE.md) · [support matrix](SUPPORT_MATRIX.md) · [known differences](KNOWN_UI_DIFFERENCES.md) · [verification report](VERIFICATION_REPORT.md)
 
 emu8086-web reproduces the EMU8086 4.08 classroom workflow. It is not a byte-for-byte clone. This file lists
 every known difference. "Not supported" always means the control is greyed out, or the action stops with an
