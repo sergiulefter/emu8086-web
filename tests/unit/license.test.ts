@@ -7,7 +7,7 @@ const read = (p: string) => readFileSync(join(process.cwd(), p), 'utf8');
 describe('project licence', () => {
   it('LICENSE is the standard MIT text with the project copyright', () => {
     const text = read('LICENSE');
-    expect(text.split('\n')[0]).toBe('MIT License');
+    expect(text.split(/\r?\n/)[0]).toBe('MIT License');
     expect(text).toContain('Copyright (c) 2026 Sergiu Lefter');
     expect(text).toContain('Permission is hereby granted, free of charge, to any person obtaining a copy');
     expect(text).toContain('The above copyright notice and this permission notice shall be included in all');

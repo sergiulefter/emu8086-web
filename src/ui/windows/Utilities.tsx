@@ -228,6 +228,7 @@ export function HelpWindow() {
         <h3>Assembler syntax</h3>
         <ul>
           <li>Numbers: <code>162</code>, <code>162d</code>, <code>0B800h</code> (hex must start with a digit), <code>0x1F</code>, <code>0000_1111b</code>, <code>17o</code>, <code>'H'</code>, <code>-1</code></li>
+          <li><code>.RADIX 16</code> changes the default number base; use <code>.RADIX 10</code> to return to decimal. Explicit suffixes and <code>0x</code> take priority.</li>
           <li>Directives: <code>ORG</code>, <code>DB</code>, <code>DW</code>, <code>DD</code>, <code>DUP</code>, <code>?</code>, <code>EQU</code> (numeric and text), <code>=</code>, <code>PROC/ENDP</code> (NEAR/FAR), <code>END</code>, <code>NAME</code>, <code>COMMENT</code>, <code>$</code>, <code>#make_com#</code>, <code>#make_bin#</code>, <code>#make_boot#</code></li>
           <li>Operators: <code>+ - * / MOD SHL SHR AND OR XOR NOT OFFSET HIGH LOW LENGTH SIZE TYPE</code></li>
           <li>Operands: <code>BYTE PTR</code>/<code>WORD PTR</code> or <code>b.</code>/<code>w.</code>, <code>ES:[DI]</code>, <code>var[BX]</code>, <code>[BX+SI+5]</code>, <code>SHORT</code>, <code>FAR PTR</code>, <code>seg:off</code></li>

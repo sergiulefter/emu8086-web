@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **`.RADIX` compatibility:** source can change the default number base without rewriting literals. Explicit
+  suffixes and `0x` take priority, including EMU8086's `123D`/`101B` behavior under base 16. Added source,
+  machine-code, execution, diagnostic, and browser tests; see `docs/VERIFICATION_REPORT.md`.
+
 - **Search positioning:** the page title now reads `emu8086-web | Free Online 8086 Emulator & Assembler`. The
   description, social cards and structured data present the app as a browser-based, EMU8086-style alternative
   that works on Linux. The text before the app loads now explains the problem it solves. The interface is

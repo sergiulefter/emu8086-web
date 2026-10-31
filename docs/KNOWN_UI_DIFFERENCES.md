@@ -32,7 +32,7 @@ explicit message. Nothing is faked.
 
 ## Not supported yet (greyed out, or an explicit message)
 - EXE programs (`.MODEL`, `.DATA`, `.CODE`, `SEGMENT/ENDS`, `@data`), `MACRO/ENDM/LOCAL`, `INCLUDE` (including
-  `emu8086.inc`, which is proprietary and not bundled), `#fasm#`, `.RADIX`, `DQ`/`DT`, the `LABEL` directive, FPU
+  `emu8086.inc`, which is proprietary and not bundled), `#fasm#`, `DQ`/`DT`, the `LABEL` directive, FPU
   instructions.
 - Graphics video modes (INT 10h AH=00h with AL=13h), pixel services, mouse (INT 33h), disk and file services
   (INT 13h, INT 21h 39h–57h), printer (INT 17h, INT 21h/05h).

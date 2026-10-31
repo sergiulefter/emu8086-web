@@ -18,7 +18,7 @@ applications, Wine or a virtual machine.
   8088 hardware ([verification report](docs/VERIFICATION_REPORT.md))
 - **Assembly code editor:** syntax highlighting, line numbers, find/replace, bookmarks, and errors reported with
   line and column
-- **EMU8086/MASM-style syntax:** `org 100h`, `0B800h`, `0000_1111b`, `'H'`, `DB/DW/DUP`, `EQU`, `PROC/ENDP`,
+- **EMU8086/MASM-style syntax:** `org 100h`, `0B800h`, `0000_1111b`, `.RADIX`, `'H'`, `DB/DW/DUP`, `EQU`, `PROC/ENDP`,
   `BYTE PTR` / `b.` / `w.`
 - **Step-by-step execution:** single step (F8), step over, **step back** (exact undo of the previous instruction),
   run with an adjustable delay, break points, run until

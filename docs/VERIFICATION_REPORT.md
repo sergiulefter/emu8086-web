@@ -85,3 +85,41 @@ assembler fuzz run produced no crashes.
 `fixtures/T001_professor_H.asm`, `T002_diagonal_HELLO.asm`, `T002b_classroom_HELLO.asm` (classroom listing
 reconstruction), `T004a_ret_only.asm`, `T004b_int21_4c.asm`, `T004c_hlt.asm`, `T005_invalid_binary.asm`,
 `T008_loop_forever.asm`, `hello_dos.asm`.
+
+## Incremental verification: .RADIX (2026-10-31)
+
+Environment: Windows, Node 22.23.2 (the installed patch version; the repository pin remains 22.23.1),
+Vitest 5.0.5, Playwright 1.64.1, Chromium build 1248 and Firefox build 1555.
+The earlier results above describe the original release and are not replaced by this incremental check.
+
+Evidence:
+
+- EMU8086's [4.02 release notes](https://raw.githubusercontent.com/surendrajat/emu8086/master/version.txt),
+  lines 335–356, document sequential changes between bases 2, 16, 10 and 8; explicit suffix priority;
+  and accepted/rejected hexadecimal spellings ending in B or D. Decimal base selectors are inferred from
+  the documented transition directly from `.radix 2` to `.radix 16`.
+- MASM's [`.RADIX` reference](https://learn.microsoft.com/en-us/cpp/assembler/masm/dot-radix) supplies the
+  accepted range 2–16. EMU8086's notes do not establish its behavior for intermediate bases.
+
+| Check | Command | Result |
+|---|---|---|
+| Full unit/integration suite | `npm test` | **381 / 381 passed**; optional hardware-conformance suite skipped |
+| New radix-specific coverage | included above | **49 unit cases + 1 integration case passed** |
+| Browser source paste, compile, step and exit | `npx playwright test tests/e2e/radix.spec.ts --workers=1` | **2 / 2 passed** (Chromium + Firefox) |
+| Type check and production bundle | `npm run build` | passed |
+| Built asset/metadata checks | `npm run check:seo` | passed |
+
+The tests check emitted bytes for documented values and suffix examples; source-order base changes;
+ORG, addresses, negative values, DUP, numeric/text equates and forward references across multiple passes;
+invalid digits and selectors; comments, strings and source lines; fixed-hex BIN settings; and isolation
+between assemblies and the debugger calculator. `fixtures/radix.asm` assigns the documented values to
+separate registers, then exits through INT 21h/4Ch. Integration and browser tests run that fixture without
+rewriting its numeric notation; the browser tests also verify the editor text is unchanged.
+
+A pre-existing licence-test assumption about Unix line endings was corrected to accept Windows CRLF
+as well; the licence contents are unchanged.
+
+Limits: no original EMU8086 executable was run, so this is documentation-based compatibility verification,
+not a differential test. Only numeric base selectors are implemented; selector expressions/symbols are
+rejected. No claim is made about EMU8086's undocumented parsing behavior, and the hardware-conformance
+suite and other browser scenarios were not rerun for this assembler-only feature.

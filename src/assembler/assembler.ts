@@ -79,7 +79,6 @@ const UNSUPPORTED_DIRECTIVES: Record<string, string> = {
   EXTRN: 'EXTRN/PUBLIC (multi-module programs) are not supported',
   PUBLIC: 'EXTRN/PUBLIC (multi-module programs) are not supported',
   DQ: 'DQ (quad word) is not supported; use DD or DW',
-  '.RADIX': '.RADIX is not supported; numbers without a suffix are decimal (use the h, b, o suffixes)',
   DT: 'DT (ten bytes) is not supported',
 };
 
@@ -115,7 +114,7 @@ export const MNEMONICS = new Set<string>([
 ]);
 export const DIRECTIVES = new Set<string>([
   'ORG', 'DB', 'DW', 'DD', 'EQU', 'PROC', 'ENDP', 'END', 'DUP', 'OFFSET', 'PTR', 'BYTE', 'WORD', 'DWORD',
-  'SHORT', 'NEAR', 'FAR', ...IGNORED_DIRECTIVES, ...Object.keys(UNSUPPORTED_DIRECTIVES),
+  'SHORT', 'NEAR', 'FAR', '.RADIX', ...IGNORED_DIRECTIVES, ...Object.keys(UNSUPPORTED_DIRECTIVES),
 ]);
 
 const RESERVED = new Set<string>([...MNEMONICS, ...DIRECTIVES, 'MOD', 'SHL', 'SHR', 'AND', 'OR', 'XOR', 'NOT', 'HIGH', 'LOW', 'LENGTH', 'SIZE', 'TYPE', 'SEG']);
@@ -213,6 +212,7 @@ class Assembler {
   private parseAll(): void {
     const procStack: { name: string; far: boolean; line: number; col: number }[] = [];
     let inComment: string | null = null;
+    let radix = 10;
     for (let i = 0; i < this.lines.length; i++) {
       const lineNo = i + 1;
       const text = this.lines[i];
@@ -221,6 +221,13 @@ class Assembler {
         continue;
       }
       const trimmed = text.trim();
+      // COMMENT's body is arbitrary text, including invalid numbers in the
+      // current radix. Consume its delimiter before lexing any of that text.
+      const comment = /^COMMENT\s+(\S)(.*)$/i.exec(trimmed);
+      if (comment) {
+        if (!comment[2].includes(comment[1])) inComment = comment[1];
+        continue;
+      }
       if (trimmed.startsWith('#')) {
         try {
           this.parseHashDirective(trimmed, lineNo, text.indexOf('#') + 1);
@@ -230,13 +237,24 @@ class Assembler {
         continue;
       }
       try {
-        const { tokens } = lexLine(text, lineNo);
+        // The selector is decimal even after `.RADIX 2` (EMU8086's own
+        // example switches straight from base 2 to `.RADIX 16`).
+        const isRadixLine = /^\s*\.RADIX\b/i.test(text);
+        const { tokens } = lexLine(text, lineNo, isRadixLine ? 10 : radix);
         if (tokens.length === 0) continue;
         const toks = this.substituteTextEqu(tokens);
         if (toks.length >= 2 && toks[0].upper === 'COMMENT') {
           const delim = text.slice(toks[1].col - 1).trim()[0];
           const rest = text.slice(toks[1].col);
           if (!rest.includes(delim)) inComment = delim;
+          continue;
+        }
+        if (toks[0].upper === '.RADIX') {
+          const base = toks[1];
+          if (toks.length !== 2 || base.kind !== 'num' || base.value < 2 || base.value > 16) {
+            throw new AsmError('.RADIX needs one numeric base from 2 to 16', lineNo, base?.col ?? toks[0].col, base?.text.length ?? toks[0].text.length);
+          }
+          radix = base.value;
           continue;
         }
         const stop = this.parseStatement(toks, lineNo, text.length + 1, procStack);

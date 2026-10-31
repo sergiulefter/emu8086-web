@@ -36,9 +36,19 @@ displacement; direct `[1234h]`; variables (`var`, `var[BX]`, `[var+2]`, `var+2[S
 | `OFFSET`, `HIGH`, `LOW`, `LENGTH`, `SIZE`, `TYPE`, `SHORT`, `NEAR PTR`, `FAR PTR`, `$` | supported |
 | operators `+ - * / MOD SHL SHR AND OR XOR NOT`, parentheses | supported |
 | numbers: `162`, `162d`, `0B800h`, `0x1F`, `0000_1111b`, `17o`, `17q`, `'A'`, `'AB'` | supported (`q` is an extra) |
+| `.RADIX base` | supported: numeric base 2–16, decimal selectors; explicit suffixes and `0x` override the default |
 | `#make_com#`, `#make_bin#`, `#make_boot#`, `#LOAD_SEGMENT=…#`, `#LOAD_OFFSET=…#`, `#CS=…#` … `#SP=…#`, `#AX=…#`, `#AL=…#` … | supported |
 | `#make_exe#`, `.MODEL`, `.DATA`, `.CODE`, `.STACK`, `SEGMENT/ENDS`, `MACRO/ENDM/LOCAL`, `INCLUDE`, `LABEL`, `EXTRN/PUBLIC`, `DQ`, `DT`, `SEG` | explicit "not supported" diagnostic |
 | `#fasm#`, `#masm#`, `#start=…#`, `#MEM=…#` | warning, ignored |
+
+`.RADIX` starts at decimal for each assembly and affects subsequent unsuffixed literals, including data,
+expressions and addresses. Base selectors themselves use decimal unless explicitly suffixed. EMU8086's
+[release notes](https://raw.githubusercontent.com/surendrajat/emu8086/master/version.txt) document bases
+2/8/10/16 and suffix priority: under base 16, `123D` is decimal 123 and `101B` is binary 5;
+`8F0B` and `0ABCD` are errors, while `8F0Bh`, `0ABCDh` and `0ABCE` are valid.
+Intermediate bases are accepted using MASM's [2–16 range](https://learn.microsoft.com/en-us/cpp/assembler/masm/dot-radix).
+Only a single numeric base selector is implemented; expressions or symbol names as selectors are rejected.
+These behaviors are checked against documentation and regression tests, not against a running EMU8086 binary.
 
 ## Interrupt services
 | Vector | Functions | Notes |
