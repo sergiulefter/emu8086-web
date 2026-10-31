@@ -26,6 +26,9 @@ explicit message. Nothing is faked.
 - **Icons and artwork** are original drawings in the same spirit. EMU8086 icons are not copied.
 - **Options dialog** offers step delay, instruction limit per run, auto-show screen, screen font and window layout.
   It does not offer EMU8086's editor colour and font customisation.
+- **Help**: F1 opens this project's in-app quick guide. It does not reproduce EMU8086's bundled HTML
+  documentation. `.RADIX` and `#MEM` use source directives and the existing editor/emulator views;
+  no feature-specific controls have been added. See `research/EMU8086_DIRECTIVE_UI_RESEARCH.md`.
 - **Fonts**: IBM VGA 8×14 stands in for the Windows "Terminal" font, and IBM VGA 9×16 is used for the screen
   (int10h.org, CC BY-SA 4.0). UI text uses Segoe UI or Tahoma when installed, otherwise a sans-serif fallback
   such as DejaVu Sans on Linux.
@@ -42,6 +45,8 @@ explicit message. Nothing is faked.
   buffer is filled from the emulator screen.
 
 ## Behaviour notes
+- `#MEM` source directives are honored for BIN/boot programs. External `.binf` sidecars are not imported or
+  exported, so open the original `.asm` source to retain its memory presets. COM use is rejected explicitly.
 - `CX` holds the program size when a COM program starts. This follows 4.08 screenshots; there is no explicit
   documentation for it.
 - At startup, video memory holds spaces with attribute `07h` (BIOS mode-set behaviour). Untouched cells read

@@ -53,6 +53,7 @@ emu8086-web is an independent re-creation of the EMU8086 *workflow* and is not a
 - COM programs (`org 100h`) load at `0700:0100` with a PSP, exactly as EMU8086 4.08 loads them.
 - A final `RET` returns to DOS with the message *PROGRAM HAS RETURNED CONTROL TO THE OPERATING SYSTEM*.
 - Out-of-range conditional jumps are extended automatically.
+- BIN/boot programs honor `#MEM` memory presets on load, reset and reload.
 - The disassembly, the memory list and the debugger windows follow EMU8086's formats.
 
 **Not supported yet:**

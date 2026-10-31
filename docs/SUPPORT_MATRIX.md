@@ -38,8 +38,9 @@ displacement; direct `[1234h]`; variables (`var`, `var[BX]`, `[var+2]`, `var+2[S
 | numbers: `162`, `162d`, `0B800h`, `0x1F`, `0000_1111b`, `17o`, `17q`, `'A'`, `'AB'` | supported (`q` is an extra) |
 | `.RADIX base` | supported: numeric base 2–16, decimal selectors; explicit suffixes and `0x` override the default |
 | `#make_com#`, `#make_bin#`, `#make_boot#`, `#LOAD_SEGMENT=…#`, `#LOAD_OFFSET=…#`, `#CS=…#` … `#SP=…#`, `#AX=…#`, `#AL=…#` … | supported |
+| `#MEM=address,bytes-address,bytes#` | supported for BIN/boot: physical or segment:offset addresses, hexadecimal byte strings; reapplied on reset/reload |
 | `#make_exe#`, `.MODEL`, `.DATA`, `.CODE`, `.STACK`, `SEGMENT/ENDS`, `MACRO/ENDM/LOCAL`, `INCLUDE`, `LABEL`, `EXTRN/PUBLIC`, `DQ`, `DT`, `SEG` | explicit "not supported" diagnostic |
-| `#fasm#`, `#masm#`, `#start=…#`, `#MEM=…#` | warning, ignored |
+| `#fasm#`, `#masm#`, `#start=…#` | warning, ignored |
 
 `.RADIX` starts at decimal for each assembly and affects subsequent unsuffixed literals, including data,
 expressions and addresses. Base selectors themselves use decimal unless explicitly suffixed. EMU8086's
@@ -49,6 +50,19 @@ expressions and addresses. Base selectors themselves use decimal unless explicit
 Intermediate bases are accepted using MASM's [2–16 range](https://learn.microsoft.com/en-us/cpp/assembler/masm/dot-radix).
 Only a single numeric base selector is implemented; expressions or symbol names as selectors are rejected.
 These behaviors are checked against documentation and regression tests, not against a running EMU8086 binary.
+
+`#MEM` follows the [compiler documentation](https://surendrajat.github.io/emu8086/documentation/compiler.html):
+addresses and byte strings are hexadecimal independently of `.RADIX`, each byte has two digits, spaces
+inside byte strings are ignored, and `-` separates entries. For example, `#MEM=0100:0200,3412#` initializes
+the word at `0100:0200` to `1234h`. These presets are loader metadata, not bytes appended to the executable.
+They replace the default BIN stack/HLT presets. COM use produces an explicit diagnostic.
+
+Implementation policies where the documentation is silent: entries (including repeated `#MEM` lines)
+are applied in source order after loading the executable, so later writes win. Segment and offset must
+fit in 16 bits; physical addresses must be within `0`–`FFFFF`. Logical addresses and byte streams wrap
+on the existing 20-bit memory bus; byte streams advance through physical memory, not within a segment.
+One byte string is limited to 1 MiB. These policies are tested but have not been compared with EMU8086.
+Raw `.bin` files do not carry presets; importing/exporting external `.binf` sidecars is not implemented.
 
 ## Interrupt services
 | Vector | Functions | Notes |

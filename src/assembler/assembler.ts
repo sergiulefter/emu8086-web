@@ -7,12 +7,13 @@
  * source map used by the debugger.
  */
 import { lexLine, type Token } from './lexer';
+import { parseMemoryPresets } from './memoryPresets';
 import {
   ExprParser, lookupReg, parseOperand, splitOperands,
   type Expr, type MemOperand, type Operand, type RegOperand, type SymbolKindLookup,
 } from './operand';
 import {
-  AsmError, type AssembleResult, type Diagnostic, type OutputType, type SourceMapEntry, type SymbolInfo,
+  AsmError, type AssembleResult, type Diagnostic, type MemoryPreset, type OutputType, type SourceMapEntry, type SymbolInfo,
 } from './types';
 
 // ------------------------------------------------------------ statements
@@ -135,6 +136,8 @@ class Assembler {
   private readonly textEqu = new Map<string, Token[]>();
   private readonly diags: Diagnostic[] = [];
   private readonly notes: string[] = [];
+  private readonly memoryPresets: MemoryPreset[] = [];
+  private memoryDirective: { line: number; col: number; length: number } | null = null;
   private outputType: OutputType | null = null;
   private outputTypeLine = 0;
   private sawOrg100 = false;
@@ -281,6 +284,14 @@ class Assembler {
     const m = /^#\s*([A-Za-z_]+)\s*(?:=\s*([^#]*))?#?/.exec(trimmed);
     if (!m) throw new AsmError(`invalid # directive`, line, col, trimmed.length);
     const key = m[1].toUpperCase();
+    if (key === 'MEM') {
+      const mem = /^#\s*MEM\s*=([^#]*)#\s*(?:;.*)?$/i.exec(trimmed);
+      if (!mem) throw new AsmError('#MEM: expected #MEM=address,bytes#', line, col, trimmed.length);
+      const presets = parseMemoryPresets(mem[1], line, col + trimmed.indexOf('=') + 1);
+      for (const preset of presets) this.memoryPresets.push(preset);
+      this.memoryDirective ??= { line, col, length: trimmed.length };
+      return;
+    }
     const make = /^MAKE_(COM|BIN|BOOT|EXE)$/.exec(key);
     if (make) {
       if (this.outputType) throw new AsmError('output type is set here again!', line, col, trimmed.length);
@@ -300,7 +311,7 @@ class Assembler {
       this.binf[key] = parseInt(v, 16) & 0xffff;
       return;
     }
-    if (key === 'FASM' || key === 'MASM' || key === 'START' || key === 'MEM') {
+    if (key === 'FASM' || key === 'MASM' || key === 'START') {
       this.warn(`#${m[1]}# is not supported by emu8086-web and is ignored`, line, col, trimmed.length);
       return;
     }
@@ -610,6 +621,9 @@ class Assembler {
 
     // Output type
     let outputType: OutputType = this.outputType ?? (this.sawOrg100 ? 'com' : 'bin');
+    if (outputType === 'com' && this.memoryDirective) {
+      this.diags.push({ severity: 'error', message: '#MEM is supported only for BIN/boot programs; use #make_bin#', ...this.memoryDirective });
+    }
     if (this.outputType === 'com' && !this.sawOrg100) {
       this.diags.push({ severity: 'error', message: 'COM file not built, aborted - ORG 100h not found!', line: this.outputTypeLine || 1, col: 1, length: 1 });
     }
@@ -661,6 +675,7 @@ class Assembler {
       symbols,
       notes: this.notes,
       binf: this.binf,
+      memoryPresets: this.memoryPresets,
     } as AssembleResult;
   }
 

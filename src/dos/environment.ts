@@ -17,6 +17,7 @@
  */
 import { AX, BP, BX, CF, CPU, CS, CX, DI, DS, DX, ES, IF, SI, SP, SS, ZF, ROM_SEGMENT } from '../cpu/cpu';
 import { Memory, physical } from '../cpu/memory';
+import type { MemoryPreset } from '../assembler/types';
 import { BDA, TextScreen } from '../devices/vga/textmode';
 
 export const COM_LOAD_SEGMENT = 0x0700;
@@ -141,7 +142,7 @@ export class DosEnvironment {
   }
 
   /** Loads a .BIN image using EMU8086's default.binf conventions, overridable via #LOAD_SEGMENT=…# etc. */
-  loadBin(image: Uint8Array, origin: number, binf: Record<string, number>, entry = origin): void {
+  loadBin(image: Uint8Array, origin: number, binf: Record<string, number>, entry = origin, memoryPresets: readonly MemoryPreset[] = []): void {
     const loadSeg = binf.LOAD_SEGMENT ?? binf.CS ?? BIN_LOAD_SEGMENT;
     const loadOff = binf.LOAD_OFFSET ?? origin;
     this.mem.load(physical(loadSeg, loadOff), image);
@@ -160,11 +161,14 @@ export class DosEnvironment {
     for (const [name, idx] of [['AL', 0], ['CL', 1], ['DL', 2], ['BL', 3], ['AH', 4], ['CH', 5], ['DH', 6], ['BH', 7]] as const) {
       if (binf[name] !== undefined) c.set8(idx, binf[name]);
     }
-    if (binf.SS === undefined && binf.SP === undefined && binf.LOAD_SEGMENT === undefined) {
+    if (memoryPresets.length === 0 && binf.SS === undefined && binf.SP === undefined && binf.LOAD_SEGMENT === undefined) {
       // default.binf: MEM=0100:FFFE,00FF-0100:FF00,F4 — a final RET reaches HLT.
       this.mem.load(physical(c.sregs[SS], 0xfffe), [0x00, 0xff]);
       this.mem.load(physical(c.sregs[SS], 0xff00), [0xf4]);
     }
+    // Explicit BINF memory replaces the default.binf memory settings. Apply
+    // after loading the image so presets can also initialize code or vectors.
+    for (const preset of memoryPresets) this.mem.load(preset.address, preset.bytes);
     c.setFlagsWord(IF);
   }
 

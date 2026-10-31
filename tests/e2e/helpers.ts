@@ -2,7 +2,8 @@ import { expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-export const fixture = (name: string) => readFileSync(join(process.cwd(), 'fixtures', name), 'utf8');
+// Browser editors normalize line endings; use the same representation on Windows and Unix.
+export const fixture = (name: string) => readFileSync(join(process.cwd(), 'fixtures', name), 'utf8').replace(/\r\n?/g, '\n');
 
 export async function freshApp(page: Page): Promise<void> {
   await page.goto('/');

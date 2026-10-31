@@ -37,6 +37,12 @@ export interface SymbolInfo {
   line: number;
 }
 
+/** Bytes to load at a physical address before a BIN program starts. */
+export interface MemoryPreset {
+  address: number;
+  bytes: Uint8Array;
+}
+
 export interface AssembleResult {
   ok: boolean;
   diagnostics: Diagnostic[];
@@ -52,4 +58,6 @@ export interface AssembleResult {
   notes: string[];
   /** BIN loader settings from #LOAD_SEGMENT=...#, #CS=...# etc. (hex values). */
   binf: Record<string, number>;
+  /** #MEM entries in source order; separate from the executable image. */
+  memoryPresets: MemoryPreset[];
 }

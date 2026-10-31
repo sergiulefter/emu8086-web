@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 1.1.0 — 2026-10-31
+
+- **Directive UI review:** checked EMU8086's documentation, configuration and editor/emulator screenshots
+  for `.RADIX` and `#MEM`. Removed their added help blocks; both features use existing source, compile,
+  register and memory views. The in-app quick guide is documented as an existing UI difference.
+
+- **`#MEM` compatibility:** BIN/boot source can initialize memory using hexadecimal physical or segment:offset
+  addresses and byte strings. Presets survive reset/reload and remain separate from executable bytes;
+  malformed directives and COM use produce diagnostics. Added parser, execution, debugger and browser tests.
+
 - **`.RADIX` compatibility:** source can change the default number base without rewriting literals. Explicit
   suffixes and `0x` take priority, including EMU8086's `123D`/`101B` behavior under base 16. Added source,
   machine-code, execution, diagnostic, and browser tests; see `docs/VERIFICATION_REPORT.md`.
@@ -10,6 +20,15 @@
   description, social cards and structured data present the app as a browser-based, EMU8086-style alternative
   that works on Linux. The text before the app loads now explains the problem it solves. The interface is
   unchanged.
+- **Cloudflare hosting:** the emulator is now served at `https://emu8086.sergiulefter.com/` through Cloudflare
+  Workers with a custom domain. GitHub Actions checks source changes without publishing to GitHub Pages.
+- **Build consistency:** Node is pinned in `.node-version` for Cloudflare builds and GitHub CI.
+- **Windows test portability:** licence and browser-fixture checks now accept Windows line endings.
+
+## 1.0.0 — 2026-10-26
+
+First complete release.
+
 - **Licensed under the MIT License** (`LICENSE`; `"license": "MIT"` in `package.json`). Third-party packages, the
   fonts and quoted or course material keep their own terms; see `docs/THIRD_PARTY_NOTICES.md`.
 - **Builds now ship `LICENSES.txt`** with the full licence texts of all bundled packages. The minified bundle
@@ -30,10 +49,6 @@
   New `docs/SEARCH_ENGINE_SETUP.md` and `docs/AI_DISCOVERY.md`.
 - **Checks:** SEO tests (`tests/unit/seo.test.ts`) and a post-build check (`npm run check:seo`). The deploy workflow
   runs the post-build check before publishing.
-
-## 1.0.0 — 2026-10-26
-
-First complete release.
 
 - **CPU**: 8086 interpreter covering every opcode and the documented quirks. It passes the full
   SingleStepTests/8088 v2 hardware suite: 323 opcode files, about 2.9 M tests. The EMU8086-accepted 80186 forms

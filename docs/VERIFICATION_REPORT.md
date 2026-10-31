@@ -123,3 +123,81 @@ Limits: no original EMU8086 executable was run, so this is documentation-based c
 not a differential test. Only numeric base selectors are implemented; selector expressions/symbols are
 rejected. No claim is made about EMU8086's undocumented parsing behavior, and the hardware-conformance
 suite and other browser scenarios were not rerun for this assembler-only feature.
+
+## Incremental verification: #MEM (2026-10-31)
+
+Environment: Windows, Node 22.23.2, Vitest 5.0.5, Playwright 1.64.1, Chromium build 1248 and Firefox build 1555.
+
+Evidence:
+
+- EMU8086's [compiler help](https://surendrajat.github.io/emu8086/documentation/compiler.html), lines 51–67,
+  specifies hexadecimal physical/segment:offset addresses, two hex digits per byte, ignored spaces,
+  and `-` between entries. Its physical-address and stack/HLT examples are covered directly.
+- The [4.02 release notes](https://raw.githubusercontent.com/surendrajat/emu8086/master/version.txt),
+  lines 212–222, describe #MEM as BIN-only and explain how the preset return address reaches HLT.
+- The shipped [default.binf](https://raw.githubusercontent.com/surendrajat/emu8086/master/default.binf),
+  lines 28–42, confirms that the default file is used when a program has no custom BINF and contains
+  the stack/HLT memory entries. Explicit source memory presets replace those default memory entries.
+
+| Check | Command | Result |
+|---|---|---|
+| Full unit/integration suite | `npm test` | **433 / 433 passed**; optional hardware-conformance suite skipped |
+| New memory-preset coverage | included above | **44 unit cases + 8 integration cases passed** |
+| Browser load, execution, Step Back, reset/reload, diagnostics | `npx playwright test tests/e2e/memoryPresets.spec.ts --workers=1` | **4 / 4 passed** (Chromium + Firefox) |
+| Type check and production bundle | `npm run build` | passed |
+| Built asset/metadata checks | `npm run check:seo` | passed |
+
+The unit tests verify both documented examples, whitespace/case, fixed hexadecimal interpretation under
+`.RADIX 2`, exact source positions, unchanged executable bytes/source lines, malformed or out-of-range
+input, atomic parsing of each directive, the per-byte-string memory limit, COM diagnostics, and isolation
+between assemblies. Integration tests verify the resulting words in AX/BX, video memory, the documented
+RET-to-HLT path, reset/reload, exact Step Back over a write, custom interrupt-vector/handler initialization,
+boot and relocated BIN images, and clearing presets when loading another program or unloading.
+`fixtures/memory_presets.asm` runs unchanged in integration tests and both browsers; browser tests also
+assert that the editor source remains unchanged and compilation errors block execution.
+
+Limits: the original EMU8086 executable was not run. The original documentation does not fully define
+overlap precedence, repeated #MEM directives, malformed-input diagnostics or boundary wrapping. This
+implementation applies entries in source order after loading the image (later writes win), normalizes
+logical addresses through the existing 20-bit memory bus, and advances byte streams through physical
+memory with wrap at 1 MiB. Physical addresses outside `0`–`FFFFF`, segment/offset values exceeding 16 bits,
+and individual byte strings larger than 1 MiB are rejected. These are tested implementation policies,
+not independently verified EMU8086 behaviors. Canonical `#MEM=...#` syntax with the closing `#` is required.
+External `.binf` sidecar import/export remains unsupported; raw `.bin` loading carries no source presets.
+Other browser scenarios and CPU hardware conformance were not rerun for this feature.
+
+## Directive UI review (2026-10-31)
+
+Reviewed EMU8086's release notes, compiler/editor/emulator help, shipped configuration, and the actual
+editor, compiler-status and emulator images. No dedicated .RADIX/#MEM controls were found in these
+references; the documented interface is the existing source/compile/emulate/register/memory flow.
+The added .RADIX help bullet and #MEM help paragraph were removed; repository documentation retains
+the guidance. The pre-existing custom quick guide is now listed explicitly as a UI difference.
+The BIN sentence retains "by default" for factual accuracy with custom presets.
+
+The combined directive browser command
+`npx playwright test tests/e2e/radix.spec.ts tests/e2e/memoryPresets.spec.ts --workers=1`
+passed **6 / 6** cases across Chromium and Firefox. Production build/type check, SEO and whitespace checks
+also passed. No assembler/loader behavior changed during this UI review, so the unit suite was not rerun.
+
+See [research and source links](research/EMU8086_DIRECTIVE_UI_RESEARCH.md). The original executable was
+not run, the screenshots have version limits, and exact directive-specific colors/error wording are
+unverified. This review does not establish pixel-identical reproduction of the whole help system or app.
+
+## Release verification: v1.1.0 (2026-10-31)
+
+Environment: Windows, Node 22.23.2, Chromium build 1248 and Firefox build 1555. The repository's Node pin
+remains 22.23.1. Package and lockfile versions are 1.1.0.
+
+| Check | Command | Result |
+|---|---|---|
+| Full unit/integration suite | `npm test` | **433 / 433 passed** |
+| Full Chromium/Firefox suite | `npm run test:e2e -- --workers=2` | **42 / 42 passed** |
+| Type check and production bundle | `npm run build` | passed |
+| Built asset/metadata checks | `npm run check:seo` | passed |
+| Whitespace | `git diff --check` | passed |
+
+The full browser run initially exposed an older test comparing a CRLF fixture with LF-normalized editor
+text. The browser fixture reader now normalizes only line endings before pasting/comparing source.
+All 42 browser cases passed on the full rerun; assembly notation, instructions, strings and comments
+remain unchanged. The optional CPU hardware-conformance suite was not rerun for this release.

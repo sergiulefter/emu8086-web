@@ -1,7 +1,7 @@
 {
   "name": "emu8086-web",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Free online Intel 8086 assembler, emulator and debugger. Run and debug EMU8086-style assembly programs directly in your browser.",
   "type": "module",
   "license": "MIT",

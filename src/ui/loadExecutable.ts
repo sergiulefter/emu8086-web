@@ -23,7 +23,7 @@ export function loadExecutableFile(): void {
       }
       const result: AssembleResult = {
         ok: true, diagnostics: [], outputType: com ? 'com' : 'bin', origin: com ? 0x100 : 0, bytes,
-        entry: com ? 0x100 : 0, sourceMap: [], symbols: [], notes: [], binf: {},
+        entry: com ? 0x100 : 0, sourceMap: [], symbols: [], notes: [], binf: {}, memoryPresets: [],
       };
       store.loadedSource = '';
       store.session.load(result, f.name);
