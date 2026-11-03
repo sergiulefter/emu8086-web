@@ -7,7 +7,8 @@
  *    INT 20h lives at F400:0150, INT 21h at F400:0200, INT 10h at F400:0190…
  *    unlisted vectors use the default stub at F400:0100.
  *  - .COM programs load at 0700:0100 with the PSP at 0700:0000 (`CD 20`),
- *    SS:SP = 0700:FFFE holding a 0000 return offset, CX = program size.
+ *    SS:SP = 0700:FFFE holding a 0000 return offset, CX = program size,
+ *    followed in memory by 20 NOPs and a HLT.
  *  - .BIN programs load at 0100:0000 (default.binf) with FF00 on the stack
  *    and a HLT at 0100:FF00 so a final RET halts.
  *
@@ -22,6 +23,8 @@ import { BDA, TextScreen } from '../devices/vga/textmode';
 
 export const COM_LOAD_SEGMENT = 0x0700;
 export const BIN_LOAD_SEGMENT = 0x0100;
+/** Number of NOPs EMU8086 4.08 places after a loaded .COM image, before a final HLT. */
+export const COM_TAIL_NOPS = 20;
 const ROM_BASE = ROM_SEGMENT << 4;
 
 /** ROM offsets of each handler stub (EMU8086 4.08 INT_VECT). */
@@ -124,13 +127,17 @@ export class DosEnvironment {
   loadCom(image: Uint8Array, entry = 0x100): void {
     const seg = COM_LOAD_SEGMENT;
     const base = seg << 4;
+    // PSP as dumped by EMU8086 4.08 (`d 0700:0000`): INT 20h, an empty command tail, zeros elsewhere.
     const psp = new Uint8Array(0x100);
     psp[0] = 0xcd; psp[1] = 0x20; // INT 20h: a final RET lands here
-    psp[2] = 0x00; psp[3] = 0xa0; // first segment beyond the program (A000h)
-    psp[0x50] = 0xcd; psp[0x51] = 0x21; psp[0x52] = 0xcb; // INT 21h / RETF (DOS dispatcher)
     psp[0x80] = 0; psp[0x81] = 0x0d; // empty command tail
     this.mem.load(base, psp);
     this.mem.load(base + 0x100, image);
+    // EMU8086 4.08's loader (not the assembler: the .com file has no padding) places 20 NOPs and a HLT
+    // right after the image, so running off the end halts and reading past the data yields 90h.
+    const tail = 0x100 + image.length;
+    const pad = [...new Array<number>(COM_TAIL_NOPS).fill(0x90), 0xf4].slice(0, Math.max(0, 0xfffe - tail));
+    this.mem.load(base + tail, pad);
     this.mem.load(base + 0xfffe, [0, 0]); // return offset 0000 → PSP INT 20h
     const c = this.cpu;
     c.reset();

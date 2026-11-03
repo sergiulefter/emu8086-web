@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+Fixes from comparing classroom programs side by side with EMU8086 4.08 running on Windows:
+
+- **`LEA` with a direct address** (`LEA SI, x`, `LEA AX, [1234h]`, `LEA SI, ES:x`) now assembles to
+  `MOV reg, imm16` (`BE 15 01`) as EMU8086 does, one byte shorter than the `8D` form. Program size in CX and every
+  later address now match. LEA with BX/BP/SI/DI is unchanged.
+- **.COM loading** places 20 `NOP`s and a `HLT` after the program, as EMU8086's loader does. Reading past the data
+  yields `90h`, and the memory list shows where DUP arrays end instead of an unbroken run of `NULL`s. The PSP now
+  holds only `INT 20h` and the empty command tail; the `A000h` word and the `INT 21h/RETF` at 50h are gone.
+- **Memory list:** every byte of the instruction at CS:IP is highlighted in blue (the trailing bytes were
+  yellow). Control-character names follow EMU8086: `BACK`, `NEWL`, `CRET`, `SPA` (space; previously no name)
+  and `RES`. `1Bh` shows its glyph. Addresses and decimal values are grey.
+
 ## 1.1.0 — 2026-10-31
 
 - **Directive UI review:** checked EMU8086's documentation, configuration and editor/emulator screenshots

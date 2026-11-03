@@ -313,17 +313,17 @@ function MemoryList() {
   for (let i = first; i < Math.min(first + count, 0x10000); i++) {
     const a = (segBase + i) & 0xfffff;
     const b = m.mem.bytes[a];
-    const isCur = m.program !== null && a === cur;
-    const isCur2 = m.program !== null && a > cur && a < cur + len;
+    // EMU8086 paints every byte of the instruction at CS:IP with the selection colour.
+    const isCur = m.program !== null && a >= cur && a < cur + len;
     rows.push(
       <div
         key={i}
-        className={`row ${isCur ? 'cur' : ''} ${isCur2 ? 'cur2' : ''}`}
+        className={`row ${isCur ? 'cur' : ''}`}
         style={{ position: 'absolute', top: i * ROW, left: 0, right: 0 }}
         onDoubleClick={() => store.setWatch({ kind: 'mem', segment: anchor.segment, offset: i })}
         title="double-click: extended value viewer (word at this address)"
       >
-        {hex5(a)}: <span className="hx">{b.toString(16).toUpperCase().padStart(2, '0')}</span> {String(b).padStart(3, '0')} {charRepr(b)}
+        <span className="ad">{hex5(a)}:</span> <span className="hx">{b.toString(16).toUpperCase().padStart(2, '0')}</span> <span className="ad">{String(b).padStart(3, '0')}</span> {charRepr(b)}
       </div>,
     );
   }

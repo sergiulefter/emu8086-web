@@ -1000,6 +1000,12 @@ class Assembler {
         let b = bRaw;
         if (b.kind === 'imm') b = { kind: 'mem', size: 0, explicitSize: false, seg: -1, base: -1, index: -1, disp: b.expr, col: b.col };
         if (b.kind !== 'mem') throw new AsmError(`${op}: second operand must be a memory reference`, L, b.col);
+        if (op === 'LEA' && b.base < 0 && b.index < 0) {
+          // EMU8086 4.08 assembles LEA of a direct address as MOV reg, imm16 (BE 15 01 for LEA SI, x),
+          // keeping any explicit segment prefix (LEA SI, ES:x -> 26 BE ..), verified against its .list output.
+          const d = b.disp ? this.val(b.disp, L).v & 0xffff : 0;
+          return [...this.segPrefix(b), 0xb8 + a.reg.code, ...le16(d)];
+        }
         const opc = op === 'LEA' ? 0x8d : op === 'LDS' ? 0xc5 : 0xc4;
         return [...this.segPrefix(b), opc, ...this.modrm(st, a.reg.code, b)];
       }

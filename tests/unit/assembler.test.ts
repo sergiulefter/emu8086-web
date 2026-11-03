@@ -107,7 +107,22 @@ describe('data and variables', () => {
 
   it('OFFSET, LEA, indexed variables, LENGTH/SIZE', () => {
     expect(hexOf('org 100h\nmov dx, offset msg\nlea si, msg\nmov al, msg[bx]\nmov al, [msg+1]\nmov cx, length msg\nret\nmsg db 1,2,3')).toBe(
-      'ba1201' + '8d361201' + '8a871201' + 'a01301' + 'b90300' + 'c3' + '010203',
+      'ba1101' + 'be1101' + '8a871101' + 'a01201' + 'b90300' + 'c3' + '010203',
+    );
+  });
+
+  it('LEA of a direct address is MOV reg, imm16 (EMU8086 4.08 listing)', () => {
+    // Expected bytes copied from the lea.com_.list produced by EMU8086 4.08 for this exact source.
+    const src = [
+      'org 100h', 'lbl:',
+      'LEA SI, x', 'LEA AX, x', 'LEA SI, [x]', 'LEA SI, x+2', 'LEA SI, w', 'LEA SI, lbl', 'LEA SP, x',
+      'LEA SI, [1234h]', 'LEA SI, [BX]', 'LEA SI, x[BX]', 'LEA SI, [BX+SI+3]', 'LEA DI, [BP-2]',
+      'LEA SI, ES:x', 'LEA BX, CS:[10h]',
+      'ret', 'x DB 1,2,3,4', 'w DW 5',
+    ].join('\n');
+    expect(hexOf(src)).toBe(
+      'be2d01' + 'b82d01' + 'be2d01' + 'be2f01' + 'be3101' + 'be0001' + 'bc2d01' + 'be3412' +
+      '8d37' + '8db72d01' + '8d7003' + '8d7efe' + '26be2d01' + '2ebb1000' + 'c3' + '01020304' + '0500',
     );
   });
 

@@ -353,11 +353,11 @@ input.sunken:read-only { background: #fff; }
 }
 .list .row { height: 14px; white-space: pre; padding: 0 3px; cursor: default; }
 .list .row.cur { background: var(--select); color: var(--select-text); }
-.list .row.cur2 { background: #ffff80; }
 .list .row.sel { outline: 1px dotted #000; outline-offset: -1px; }
 .list .row.bp::before { content: '●'; color: #d00000; position: absolute; left: 0; font-size: 10px; }
 .list .row .hx { color: #008000; }
-.list .row.cur .hx { color: #fff; }
+.list .row .ad { color: #808080; }
+.list .row.cur .hx, .list .row.cur .ad { color: #fff; }
 
 .emu-buttons { display: flex; gap: 4px; padding: 2px 6px 4px 124px; flex-wrap: wrap; }
 .emu-buttons .btn3d { width: 56px; height: 25px; padding: 0; }

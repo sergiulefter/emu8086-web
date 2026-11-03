@@ -49,9 +49,12 @@ export const CP437: string[] = (() => {
   return table;
 })();
 
-/** Names used by EMU8086-style memory lists for control characters. */
+/**
+ * Names EMU8086 4.08's memory list shows instead of a glyph (verified on the real program for
+ * bytes 00-20h, 7Fh, 80h, A0h and FFh; every other byte shows its CP437 glyph, 1Bh included).
+ */
 export const CONTROL_NAMES: Record<number, string> = {
-  0: 'NULL', 7: 'BEEP', 8: 'BS', 9: 'TAB', 10: 'LF', 13: 'CR', 27: 'ESC', 255: 'RES',
+  0: 'NULL', 7: 'BEEP', 8: 'BACK', 9: 'TAB', 10: 'NEWL', 13: 'CRET', 32: 'SPA', 255: 'RES',
 };
 
 export interface Cell {

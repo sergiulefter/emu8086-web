@@ -8,8 +8,11 @@ Follow the EMU8086 4.08 memory map (docs/research §7):
   `FF FF CD nn` as a service trap only inside the ROM segment. Handler offsets match 4.08: INT 20h at
   `F400:0150`, 21h at `0200`, 10h at `0190`, 16h at `01C0`, 1Ah at `0160`, 00h at `0170`, and so on. Unlisted
   vectors use `F400:0100`, which reports "INT nn is not supported". INT 19h points to `FFFF:0000`.
-- **COM**: PSP at `0700:0000` (`CD 20`, top-of-memory `A000`, `INT 21h/RETF` at 50h, empty command tail).
-  The image is at `0700:0100`, `CS=DS=ES=SS=0700`, `IP=0100`, `SP=FFFE`, `[SS:FFFE]=0000`,
+- **COM**: PSP at `0700:0000` holding `CD 20` and the empty command tail (`00 0D` at 80h). Every other PSP byte
+  is zero, as the 4.08 debug window shows with `d 0700:0000`. An earlier `A000h` top-of-memory word and an
+  `INT 21h/RETF` at 50h were removed for that reason.
+  The image is at `0700:0100` and is followed by 20 `NOP`s and a `HLT`. The loader adds these: they are not in the
+  `.com` file and do not count in CX. `CS=DS=ES=SS=0700`, `IP=0100`, `SP=FFFE`, `[SS:FFFE]=0000`,
   `CX` = program size (as in 4.08 screenshots), the other registers are 0, and IF=1.
 - **BIN** (default.binf): loaded at `0100:0000` with all segments `0100`, `SP=FFFE`, `FF00` on the stack and a `HLT` at
   `0100:FF00`. `#LOAD_SEGMENT=…#`, `#CS=…#` and similar directives override this. `#make_boot#` loads at `0000:7C00`.
