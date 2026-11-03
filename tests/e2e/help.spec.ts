@@ -1,5 +1,7 @@
 // Help opens the bundled EMU8086 4.08 documentation; menus list the same items as EMU8086 4.08.
 import { expect, test } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { editorText, freshApp, pasteSource } from './helpers';
 
 test.beforeEach(async ({ page }) => {
@@ -36,7 +38,14 @@ test('editor menus match EMU8086 4.08', async ({ page }) => {
   await page.getByRole('menuitem', { name: 'help' }).click();
   await page.getByRole('menuitem', { name: 'check for an update...' }).click();
   await expect(page.getByText('every time the page is loaded it is the latest version')).toBeVisible();
+  const version = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8')).version as string;
+  await expect(page.getByText(`this is emu8086-web ${version}.`)).toBeVisible();
   await page.keyboard.press('Enter');
+
+  await page.getByRole('menuitem', { name: 'help' }).click();
+  await page.getByRole('menuitem', { name: 'about...' }).click();
+  await expect(page.getByTestId('about-version')).toHaveText(`emu8086-web ${version}`);
+  await page.getByRole('button', { name: 'OK' }).click();
 
   await page.getByRole('menuitem', { name: 'assembler' }).click();
   await expect(page.getByRole('menuitem', { name: 'fasm' })).toHaveAttribute('aria-disabled', 'true');

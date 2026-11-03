@@ -5,6 +5,7 @@ import { MenuPopup } from '../Menu';
 import { store, useStore, type MessageBox } from '../store';
 import * as A from '../actions';
 import { SCREEN_FONTS } from './ScreenWindow';
+import { APP_VERSION } from '../../version';
 
 function MsgIcon({ icon }: { icon: MessageBox['icon'] }) {
   if (icon === 'error') return <Icons.bigError />;
@@ -247,7 +248,7 @@ export function AboutDialog() {
     <Window id="about" title="about emu8086-web" icon={<Icons.appTool />} tool resizable={false}>
       <div className="dlg">
         <div className="msg-body" style={{ flexDirection: 'column', gap: 6 }}>
-          <b style={{ fontSize: 14 }}>emu8086-web 1.0</b>
+          <b style={{ fontSize: 14 }} data-testid="about-version">emu8086-web {APP_VERSION}</b>
           <span>assembler and microprocessor emulator for the browser, modelled on the EMU8086 4.08 workflow used in class.</span>
           <span>Runs entirely in this browser tab: no server, account or network access.</span>
           <span style={{ color: '#555' }}>

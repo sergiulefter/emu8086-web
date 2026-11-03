@@ -7,6 +7,7 @@ import { store, type WinId } from './store';
 import { EXAMPLES, TEMPLATES } from '../examples';
 import { physical } from '../cpu/memory';
 import { hex4 } from '../debug/machine';
+import { APP_VERSION } from '../version';
 
 type FileHandle = {
   name: string;
@@ -280,6 +281,6 @@ export function checkForUpdate(): void {
   store.showMessage({
     title: 'message',
     icon: 'info',
-    text: 'emu8086-web runs from the web: every time the page is loaded it is the latest version.\nnothing needs to be installed or updated.',
+    text: `this is emu8086-web ${APP_VERSION}.\nemu8086-web runs from the web: every time the page is loaded it is the latest version.\nnothing needs to be installed or updated.`,
   });
 }

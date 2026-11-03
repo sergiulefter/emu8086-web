@@ -88,7 +88,11 @@ function documentationIndex(): Plugin {
   };
 }
 
+/** The single source of the app version: package.json, exposed to the code as __APP_VERSION__ (see src/version.ts). */
+const APP_VERSION = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8')).version as string;
+
 export default defineConfig(({ command }) => ({
+  define: { __APP_VERSION__: JSON.stringify(APP_VERSION) },
   // Production builds use relative URLs so the same dist/ works at any path,
   // e.g. Cloudflare static hosting or `npm run preview`.
   base: command === 'build' ? './' : '/',

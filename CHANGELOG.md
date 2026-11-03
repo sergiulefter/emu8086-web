@@ -31,6 +31,8 @@ Fixes from comparing classroom programs side by side with EMU8086 4.08 running o
   codes filled top to bottom, with entries such as `065: A`. Numbers are grey, and control codes show as red
   `null`, `beep`, `back`, `tab`, `newl`, `cret`, `spa` and `res`. A click switches all numbers between decimal and
   hexadecimal. The old 16-column grid and its status bar are gone.
+- **Version from package.json:** the About box (which still said 1.0) and help → check for an update show the
+  version from `package.json`. Vite injects it at build time (`src/version.ts`), so the version is set in one place.
 
 ## 1.1.0 — 2026-10-31
 
