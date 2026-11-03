@@ -151,6 +151,12 @@ export const Icons: Record<string, (p: P) => JSX.Element> = {
       <path d="M5 7h6M5 9h6M5 11h4" stroke="#2a64c8" />
     </S>
   ),
+  appAscii: () => (
+    <S size={16} vb="0 0 16 16">
+      <rect x="1" y="1" width="14" height="14" fill="#1a1aff" />
+      <path d="M4.5 13V5.5L8 3l3.5 2.5V13M4.5 9h7" fill="none" stroke="#fff" strokeWidth="2" />
+    </S>
+  ),
   appTool: () => (
     <S size={16} vb="0 0 16 16">
       <rect x="2.5" y="3.5" width="11" height="9" fill="#fff" stroke="#3b4a6b" />

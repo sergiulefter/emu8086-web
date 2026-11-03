@@ -53,7 +53,7 @@ Confidence is the confidence in the *EMU8086 behaviour* being reproduced.
 | emulator | assemble and load in the emulator | Same as F5 | — | — | BIN | implemented | high |
 | math | multi base calculator | *calculator - expression evaluator* (`~ * / % + - << >> & ^ \|`, result base, signed byte/word interpretation) | — | — | BIN, D-NUM | implemented | high |
 | math | base converter | *base convertor* (8/16 bit; HEX, DEC signed/unsigned, OCT, BIN, char) | — | — | BIN, D-NUM | implemented | high |
-| ascii codes | (top-level item) | Code page 437 table with decimal, hex and binary codes | — | — | BIN | implemented (layout unverified) | medium |
+| ascii codes | (top-level item) | Fixed-size table as in EMU8086 4.08: 8 columns of 32 codes filled top to bottom, `065: A`, grey numbers, red names for null/beep/back/tab/newl/cret/spa/res; a click switches between decimal and hexadecimal | — | — | BIN, compared with EMU8086 4.08 | implemented (E2E) | high |
 | help | documentation and tutorials | Opens the unchanged EMU8086 4.08 HTML documentation at /documentation/ in a separate browser tab | — | F1 | BIN | implemented (E2E) | high |
 | help | check for an update... | Message: the web version is always the latest one | — | — | BIN | implemented | high |
 | help | about... | About box with credits and licences | — | — | BIN | implemented | high |

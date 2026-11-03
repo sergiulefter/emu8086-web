@@ -105,7 +105,7 @@ function defaultLayout(): Record<WinId, Omit<Win, 'id' | 'z' | 'open' | 'minimiz
     memory: { x: 140, y: 80, w: 640, h: 380 },
     calculator: { x: 220, y: 120, w: 430, h: 280 },
     convertor: { x: 260, y: 140, w: 360, h: 280 },
-    ascii: { x: 240, y: 90, w: 520, h: 420 },
+    ascii: { x: 240, y: 90, w: 656, h: 428 }, // EMU8086 4.08 ascii codes: 8 x 80 px columns, 32 x 12 px rows
     options: center(420, 330),
     about: center(400, 260),
     status: center(520, 330),
@@ -152,6 +152,9 @@ export const TASK_WINDOWS: WinId[] = [
   'editor', 'emulator', 'screen', 'source', 'viewer', 'flags', 'stack', 'vars', 'debug', 'memory',
   'calculator', 'convertor', 'ascii', 'symbols', 'listing', 'lexflags',
 ];
+
+/** Windows that are not resizable (as in EMU8086); a saved size from an older layout is ignored. */
+const FIXED_SIZE = new Set<WinId>(['ascii']);
 
 function loadJson<T>(key: string): T | null {
   try {
@@ -216,7 +219,9 @@ export class AppStore {
     this.wins = {} as Record<WinId, Win>;
     for (const id of Object.keys(layout) as WinId[]) {
       const s = saved[id];
-      const g = { ...layout[id], ...(s ? { x: s.x, y: s.y, w: s.w, h: s.h } : {}) } as Win;
+      // fixed-size windows keep their designed size; only the saved position is restored
+      const size = s && !FIXED_SIZE.has(id) ? { w: s.w, h: s.h } : {};
+      const g = { ...layout[id], ...(s ? { x: s.x, y: s.y, ...size } : {}) } as Win;
       // keep restored windows reachable
       g.w = Math.min(Math.max(g.w ?? 200, 160), Math.max(vw, 320));
       g.h = Math.min(Math.max(g.h ?? 120, 80), Math.max(vh, 240));

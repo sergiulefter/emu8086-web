@@ -436,9 +436,14 @@ input.sunken:read-only { background: #fff; }
 .flags-grid { display: grid; grid-template-columns: auto auto; gap: 3px 12px; padding: 4px 2px; }
 .flags-grid label { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 14px; }
 
-.ascii-grid { display: grid; grid-template-columns: repeat(16, 1fr); font-family: var(--mono); font-size: 14px; background: #fff; overflow: auto; flex: 1 1 auto; }
-.ascii-grid div { text-align: center; padding: 3px 0; border-right: 1px solid #eee; border-bottom: 1px solid #eee; cursor: default; }
-.ascii-grid div:hover, .ascii-grid div.sel { background: var(--select); color: #fff; }
+/* EMU8086 4.08 ascii codes: white client, 8 columns x 32 rows, 80 px columns and 12 px rows (Terminal 8x12) */
+.ascii-table { flex: 1 1 auto; display: flex; background: #fff; padding: 6px 7px; cursor: default; user-select: none;
+  font-family: var(--mono); font-size: 14px; line-height: 12px; white-space: pre; overflow: hidden; }
+.ascii-col { width: 80px; flex: 0 0 80px; }
+.ascii-cell { height: 12px; }
+.ascii-cell .n { color: #757575; }
+.ascii-cell .ch { color: #000; }
+.ascii-cell .name { color: #ff0000; }
 
 
 .debug-log { flex: 1 1 auto; min-height: 0; margin: 0; overflow: auto; background: #fff; padding: 4px; font-family: var(--mono); font-size: 14px; line-height: 14px; white-space: pre-wrap; user-select: text; }

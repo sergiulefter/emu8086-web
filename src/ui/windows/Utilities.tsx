@@ -117,24 +117,37 @@ export function ConvertorWindow() {
 }
 
 // ============================================================ ascii codes
+/** Names the EMU8086 4.08 ascii codes table shows (in red) instead of a glyph. */
+const ASCII_NAMES: Record<number, string> = { 0: 'null', 7: 'beep', 8: 'back', 9: 'tab', 10: 'newl', 13: 'cret', 32: 'spa', 255: 'res' };
+
+/**
+ * EMU8086 4.08 ascii codes window: 8 columns of 32 codes, filled top to bottom. A click anywhere switches
+ * the numbers between decimal (`065:`) and hexadecimal (`41:`).
+ */
 export function AsciiWindow() {
-  const [sel, setSel] = useState(0x41);
+  const [hex, setHex] = useState(false);
   return (
-    <Window id="ascii" title="ascii codes" icon={<Icons.appTool />}>
-      <div className="dlg" style={{ padding: 4, gap: 4 }}>
-        <div className="ascii-grid sunken">
-          {CP437.map((ch, i) => (
-            <div key={i} className={sel === i ? 'sel' : ''} onClick={() => setSel(i)} title={`${i} = ${i.toString(16).toUpperCase().padStart(2, '0')}h`}>
-              {i === 0 ? ' ' : ch}
-            </div>
-          ))}
-        </div>
-        <div className="statusbar" style={{ background: 'transparent' }}>
-          <div className="cell">char: {sel === 0 ? 'NULL' : CP437[sel]}</div>
-          <div className="cell">decimal: {sel}</div>
-          <div className="cell">hex: {sel.toString(16).toUpperCase().padStart(2, '0')}h</div>
-          <div className="cell">binary: {sel.toString(2).padStart(8, '0')}b</div>
-        </div>
+    <Window id="ascii" title="ascii codes" icon={<Icons.appAscii />} resizable={false}>
+      <div
+        className="ascii-table"
+        data-testid="ascii-table"
+        title="click to switch between decimal and hexadecimal"
+        onClick={() => setHex((h) => !h)}
+      >
+        {Array.from({ length: 8 }, (_, col) => (
+          <div key={col} className="ascii-col">
+            {Array.from({ length: 32 }, (_, row) => {
+              const code = col * 32 + row;
+              const name = ASCII_NAMES[code];
+              return (
+                <div key={code} className="ascii-cell" data-code={code}>
+                  <span className="n">{hex ? code.toString(16).toUpperCase().padStart(2, '0') : String(code).padStart(3, '0')}:</span>{' '}
+                  {name ? <span className="name">{name}</span> : <span className="ch">{CP437[code]}</span>}
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </Window>
   );

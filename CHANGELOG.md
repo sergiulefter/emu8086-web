@@ -27,6 +27,10 @@ Fixes from comparing classroom programs side by side with EMU8086 4.08 running o
   whitespace. advanced editor macros, fasm, set output directory and the eight virtual device programs are listed
   greyed out. help → check for an update is added. file → new no longer lists an extra "empty" item; the code
   template dialog keeps "empty workspace".
+- **ascii codes window** looks and behaves like EMU8086 4.08's. It is a fixed-size white table of 8 columns of 32
+  codes filled top to bottom, with entries such as `065: A`. Numbers are grey, and control codes show as red
+  `null`, `beep`, `back`, `tab`, `newl`, `cret`, `spa` and `res`. A click switches all numbers between decimal and
+  hexadecimal. The old 16-column grid and its status bar are gone.
 
 ## 1.1.0 — 2026-10-31
 
