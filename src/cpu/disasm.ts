@@ -251,10 +251,12 @@ export function disassemble(read: ByteReader, offset: number, segment = 0): Disa
         break;
       }
       case 0xff: {
-        // Emulator service trap inside the BIOS ROM segment: FF FF CD nn.
+        // Emulator service trap inside the BIOS ROM segment: FF FF CD nn. EMU8086 4.08 lists the two FF
+        // bytes as "BIOS DI" and the CD nn that follows as its own INT line, although the CPU executes all
+        // four bytes in one step (F400:0150 -> F400:0154 for INT 20h).
         if (segment === ROM_SEGMENT && read(pos & 0xffff) === 0xff && read((pos + 1) & 0xffff) === 0xcd) {
-          pos += 2;
-          text = `BIOS DI ${hexLiteral(next(), 2)}`; // EMU8086 shows its BIOS trap as "BIOS DI"
+          pos += 1;
+          text = 'BIOS DI';
           break;
         }
         const m = modrm();

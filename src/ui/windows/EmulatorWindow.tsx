@@ -310,7 +310,7 @@ function MemoryList() {
     const row = anchor.offset;
     const top = row * ROW;
     if (top < el.scrollTop || top + ROW > el.scrollTop + el.clientHeight) {
-      const target = Math.max(0, top - 2 * ROW);
+      const target = top; // EMU8086 scrolls the anchor (CS:IP after a step) to the first row
       if (Math.round(el.scrollTop) !== target) programmatic.current = true; // no scroll event when unchanged
       el.scrollTop = target;
       setScrollTop(el.scrollTop);
@@ -437,9 +437,10 @@ function DisassemblyList() {
     store.selectAddress(physical(anchor.segment, offset), length);
   };
   const sel = s.selectedAddress;
+  // EMU8086's box shows a fresh selection, an address typed into it, or else CS:IP (not the first listed line)
   const boxOffset = s.selectionFresh() && sel !== null && ((sel - (anchor.segment << 4)) & 0xfffff) <= 0xffff
     ? (sel - (anchor.segment << 4)) & 0xffff
-    : anchor.offset;
+    : explicit || anchor.segment !== cs ? anchor.offset : ip;
 
   const contextItems = (addr: number): MenuEntry[] => [
     { label: 'set break point', action: () => { store.session.machine.breakpoints.add(addr); store.emit(); } },

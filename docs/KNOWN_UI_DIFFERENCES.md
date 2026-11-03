@@ -39,9 +39,6 @@ explicit message. Nothing is faked.
 - **Fonts**: IBM VGA 8×14 stands in for the Windows "Terminal" font, and IBM VGA 9×16 is used for the screen
   (int10h.org, CC BY-SA 4.0). UI text uses Segoe UI or Tahoma when installed, otherwise a sans-serif fallback
   such as DejaVu Sans on Linux.
-- **ROM service traps in the disassembly**: emu8086-web shows a handler stub `FF FF CD nn` as a single line
-  `BIOS DI nnh` and highlights its four bytes. EMU8086 4.08 lists `BIOS DI` (two bytes) and `INT nnh` on separate
-  lines. Both execute the stub in one step (`F400:0150` → `F400:0154` for INT 20h).
 
 ## Not supported yet (greyed out, or an explicit message)
 - EXE programs (`.MODEL`, `.DATA`, `.CODE`, `SEGMENT/ENDS`, `@data`), `MACRO/ENDM/LOCAL`, `INCLUDE` (including

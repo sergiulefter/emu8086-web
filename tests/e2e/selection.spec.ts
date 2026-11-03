@@ -18,6 +18,24 @@ test.beforeEach(async ({ page }) => {
   await expect(memRow(page, '07100')).toHaveClass(/\bcur\b/);
 });
 
+test('CS:IP is the first memory row; the ROM trap shows as 2-byte BIOS DI; the boxes show CS:IP', async ({ page }) => {
+  const firstRow = () => page.locator('[data-testid=memory-list] .row').first();
+  await expect(firstRow()).toHaveText(/^07100:/); // no rows above CS:IP after loading, as in EMU8086
+  for (let i = 0; i < 14; i++) await page.getByRole('button', { name: 'single step' }).click();
+  // F400:0150: the list jumps with CS:IP on the first row; only FF FF is the current "instruction"
+  await expect(firstRow()).toHaveText(/^F4150:/);
+  await expect(page.locator('[data-testid=memory-list] .row.cur')).toHaveCount(2);
+  await expect(disRows(page).nth(0)).toHaveText('BIOS DI');
+  await expect(disRows(page).nth(1)).toHaveText('INT 020h');
+  await expect(disRows(page).nth(2)).toHaveText('IRET');
+  // the trap runs in one step; both boxes then show CS:IP, not the first listed line
+  await page.getByRole('button', { name: 'single step' }).click();
+  await expect(page.getByTestId('message-box')).toContainText('PROGRAM HAS RETURNED CONTROL');
+  await expect(memBox(page)).toHaveValue('F400:0154');
+  await expect(disBox(page)).toHaveValue('F400:0154');
+  await expect(disRows(page).nth(2)).toHaveClass(/\bcur\b/);
+});
+
 test('memory click selects one byte, re-anchors the disassembly and marks the source line', async ({ page }) => {
   await memRow(page, '07105').click();
   await expect(memRow(page, '07105')).toHaveClass(/\bpick\b/);

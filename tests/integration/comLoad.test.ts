@@ -56,5 +56,12 @@ describe('.COM load layout (EMU8086 4.08)', () => {
     expect(m.cpu.sregs[CS]).toBe(0xf400);
     expect(m.cpu.ip).toBe(0x150);
     expect(m.cpu.regs[SP]).toBe(0xfffa);
+    // EMU8086 lists the trap as a 2-byte BIOS DI followed by INT 020h and IRET...
+    expect(m.disassembleFrom(0xf400, 0x150, 3).map((l) => [l.offset, l.d.text, l.d.length])).toEqual([
+      [0x150, 'BIOS DI', 2], [0x152, 'INT 020h', 2], [0x154, 'IRET', 1],
+    ]);
+    // ...but executes all four bytes in one step and reports the DOS exit
+    expect(m.step().stop?.reason).toBe('exit');
+    expect(m.cpu.ip).toBe(0x154);
   });
 });

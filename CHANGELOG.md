@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- **Memory list position:** when the list jumps to follow CS:IP (after loading, or when execution leaves the
+  visible rows), the current instruction is now the first row, as in EMU8086 4.08. Previously two rows were kept
+  above it.
+- **ROM service traps** (`FF FF CD nn`, e.g. INT 20h at `F400:0150`) are listed as EMU8086 4.08 lists them: a
+  2-byte `BIOS DI` (two blue rows in the memory list), then `INT 020h` and `IRET` on their own lines. They still
+  execute in one step.
+- **Disassembly address box** shows CS:IP, an address typed into it, or a fresh selection, as EMU8086 does. It no
+  longer shows the first listed line (it read `F400:0150` instead of `F400:0154` after the exit message).
+
 ## 1.2.0 — 2026-11-03
 
 Fixes from comparing classroom programs side by side with EMU8086 4.08 running on Windows:
