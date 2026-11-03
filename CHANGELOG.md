@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.2.1 — 2026-11-03
 
 - **Memory list position:** when the list jumps to follow CS:IP (after loading, or when execution leaves the
   visible rows), the current instruction is now the first row, as in EMU8086 4.08. Previously two rows were kept
