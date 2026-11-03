@@ -188,8 +188,15 @@ export class AppStore {
   message: MessageBox | null = null;
   confirm: MessageBox | null = null;
   watch: Watch = { kind: 'reg', name: 'AX' };
-  /** Selected disassembly line (physical address) for breakpoint / run until / set CS:IP. */
+  /**
+   * Bytes selected by clicking the memory list (one byte) or the disassembly (the whole instruction),
+   * used for breakpoint / run until / set CS:IP. EMU8086 paints them yellow and keeps them across steps.
+   */
   selectedAddress: number | null = null;
+  selectedLength = 1;
+  /** Advances whenever an instruction executes; a selection made in the current epoch is "fresh". */
+  viewEpoch = 0;
+  private selectionEpoch = -1;
   memoryAnchor: { segment: number; offset: number } | null = null;
   disasmAnchor: { segment: number; offset: number } | null = null;
   settings: Settings;
@@ -440,7 +447,10 @@ export class AppStore {
     const m = this.session.machine;
     if (m.cpu.instructionCount !== this.lastCount) {
       this.lastCount = m.cpu.instructionCount;
-      this.disasmAnchor = null; // the disassembly follows CS:IP after every executed instruction
+      // After every executed instruction both lists and their address boxes return to CS:IP (EMU8086 4.08).
+      this.disasmAnchor = null;
+      this.memoryAnchor = null;
+      this.viewEpoch++;
     }
     // Bring the virtual screen forward when the program writes to video memory (EMU8086 ACTIVATE_SCREEN).
     if (m.mem.isDirty(0xb8000, 0xbffff)) {
@@ -497,9 +507,24 @@ export class AppStore {
     this.open('viewer');
   }
 
-  selectAddress(addr: number | null): void {
+  selectAddress(addr: number | null, length = 1): void {
     this.selectedAddress = addr;
+    this.selectedLength = Math.max(1, length);
+    this.selectionEpoch = this.viewEpoch;
     this.emit();
+  }
+
+  /**
+   * True until the next executed instruction. While fresh, EMU8086's address boxes show the selection
+   * and the source window marks its line; after a step they return to CS:IP, the yellow bytes stay.
+   */
+  selectionFresh(): boolean {
+    return this.selectedAddress !== null && this.selectionEpoch === this.viewEpoch;
+  }
+
+  isSelected(addr: number): boolean {
+    const s = this.selectedAddress;
+    return s !== null && ((addr - s) & 0xfffff) < this.selectedLength;
   }
 
   toggleBreakpointAt(addr: number): void {

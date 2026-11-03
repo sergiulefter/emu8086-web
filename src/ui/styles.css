@@ -352,8 +352,11 @@ input.sunken:read-only { background: #fff; }
   user-select: none;
 }
 .list .row { height: 14px; white-space: pre; padding: 0 3px; cursor: default; }
-.list .row.cur { background: var(--select); color: var(--select-text); }
-.list .row.sel { outline: 1px dotted #000; outline-offset: -1px; }
+/* EMU8086 4.08 list colours, sampled from the real program: CS:IP blue, clicked selection yellow, both green */
+.list .row.cur { background: #0000ff; color: var(--select-text); }
+.list .row.pick { background: #ffff96; }
+.list .row.cur.pick { background: #009b00; color: #fff; }
+.list:focus { outline: none; }
 .list .row.bp::before { content: '●'; color: #d00000; position: absolute; left: 0; font-size: 10px; }
 .list .row .hx { color: #008000; }
 .list .row .ad { color: #808080; }
@@ -389,6 +392,9 @@ input.sunken:read-only { background: #fff; }
 .src-line .ln { color: #808080; background: #f4f4f4; padding: 0 4px 0 2px; min-width: 26px; text-align: right; flex: 0 0 auto; cursor: pointer; }
 .src-line .tx { padding-left: 4px; flex: 1 0 auto; }
 .src-line.cur .tx { background: #ffff00; }
+/* source line of a fresh emulator selection: inverted text, like EMU8086's text selection */
+.src-line.pick .tx .inv { filter: invert(1); background: #fff; }
+.src-line.cur.pick .tx .inv { background: #ffff00; }
 .src-line.bp .ln { background: #d00000; color: #fff; }
 
 /* syntax colours (EMU8086 defaults, approximated from the reference screenshots) */

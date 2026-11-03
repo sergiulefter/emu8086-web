@@ -124,8 +124,8 @@ a `.asm` file on the editor opens it. Implemented.
 | Element | Behaviour | Status |
 |---|---|---|
 | registers group (AX/BX/CX/DX as H/L; CS IP SS SP BP SI DI DS ES) | Hex, editable (type and press Enter); values changed by the last action are shown in blue; double-click opens the extended value viewer | implemented (E2E) |
-| memory list + address box | One row per byte, `PPPPP: HH DDD c` (physical address, hex, decimal, CP437 char or `NULL` / `RES` / …). The current instruction's first byte is shown in blue, the rest in yellow. The box accepts `seg:off`, `DS:[BX+2]`, `CS:IP`, variable names or a physical address; double-click opens the value viewer on that word | implemented (E2E) |
-| disassembly list + address box | EMU8086 format (`MOV AX, 0B800h`, `INT 020h`, `BIOS DI 020h` for ROM traps). Follows CS:IP. Click selects; double-click or right-click sets break points; wheel or arrow keys scroll | implemented |
+| memory list + address box | One row per byte, `PPPPP: HH DDD c` (physical address, hex, decimal, CP437 char or `NULL` / `BACK` / `TAB` / `NEWL` / `CRET` / `SPA` / `RES`). Every byte of the current instruction is blue. A click selects one byte (yellow; green where it overlaps CS:IP), restarts the disassembly at that byte and puts its address in the box; the selection stays across steps. Arrow and page keys scroll without moving the selection, and after scrolling the box shows the first visible row. After each executed instruction the box returns to CS:IP. The box accepts `seg:off`, `DS:[BX+2]`, `CS:IP`, variable names or a physical address; double-click opens the value viewer on that word | implemented (E2E) |
+| disassembly list + address box | EMU8086 format (`MOV AX, 0B800h`, `INT 020h`, `BIOS DI 020h` for ROM traps). Follows CS:IP. A click selects the line (yellow) and every byte of its instruction in the memory list, without moving the disassembly; the box shows the selected address until the next step. Double-click or right-click sets break points; wheel or arrow keys scroll | implemented (E2E) |
 | status line | ready / running (count) / waiting for keyboard input / stopped reason; source line; instruction count | implemented (addition, see differences) |
 
 ### Bottom buttons `screen · source · reset · aux · vars · debug · stack · flags` (BIN, REF-01)
@@ -144,7 +144,7 @@ a `.asm` file on the editor opens it. Implemented.
 | Window | Behaviour | Evidence | Status |
 |---|---|---|---|
 | emulator screen (80x25 chars) | Canvas rendered from RAM at B8000h; CP437; 16 colours; BIOS cursor; typing sends keys to the BIOS keyboard buffer. **clear screen**, **change font** (VGA 9×16 / 8×16 / EGA 8×14), buffer indicator `n/15` (click to flush) | REF-02, REF-04, D-MEM, VER | implemented (E2E) |
-| original source code | Read-only, syntax-coloured, with line numbers. The next line to execute is shown in yellow; the last program line stays highlighted while in the PSP or ROM. Click a line number to toggle a break point | REF-01, REF-04, D-COMP | implemented (E2E T003) |
+| original source code | Read-only, syntax-coloured, with line numbers. The next line to execute is shown in yellow; the last program line stays highlighted while in the PSP or ROM. The line that emitted bytes just selected in the emulator is shown inverted until the next step. Click a line number to toggle a break point | REF-01, REF-04, D-COMP | implemented (E2E T003) |
 | extended value viewer | watch (registers or MEM seg:off), word/byte; H/L hex, bin, oct; decimal 8-bit unsigned/signed/ascii; decimal 16-bit; every field is editable | REF-01, D-EMU | implemented (E2E T009) |
 | message | *PROGRAM HAS RETURNED CONTROL / TO THE OPERATING SYSTEM*, *the emulator is halted.*, *break point encountered at:*, unsupported-service and limit messages; OK | REF-04, BIN | implemented (E2E) |
 | program terminated → reload? | Shown when stepping or running after termination | BIN | implemented |

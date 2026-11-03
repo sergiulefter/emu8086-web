@@ -14,6 +14,8 @@ export function SourceWindow() {
   const s = useStore();
   const m = s.session.machine;
   const cur = m.program ? m.currentSourceLine() ?? m.lastLine : null;
+  // the line that emitted the bytes just clicked in the emulator, until the next step (EMU8086 4.08)
+  const picked = m.program && s.selectionFresh() && s.selectedAddress !== null ? m.sourceLineAt(s.selectedAddress) : null;
   const ref = useRef<HTMLDivElement>(null);
   const text = s.loadedSource;
   const lines = text ? text.split(/\r?\n/) : [];
@@ -36,7 +38,7 @@ export function SourceWindow() {
         {lines.map((line, i) => {
           const n = i + 1;
           return (
-            <div key={i} className={`src-line ${n === cur ? 'cur' : ''} ${bpLines.has(n) ? 'bp' : ''}`} data-line={n}>
+            <div key={i} className={`src-line ${n === cur ? 'cur' : ''} ${n === picked ? 'pick' : ''} ${bpLines.has(n) ? 'bp' : ''}`} data-line={n}>
               <span
                 className="ln"
                 title="click to toggle a break point on this line"
@@ -48,10 +50,12 @@ export function SourceWindow() {
                 {String(n).padStart(2, '0')}
               </span>
               <span className="tx">
-                {tokenizeLine(line.replace(/\t/g, '        ')).map((t, k) => (
-                  <span key={k} className={`t-${t.cls}`}>{t.text}</span>
-                ))}
-                {line === '' ? ' ' : ''}
+                <span className="inv">
+                  {tokenizeLine(line.replace(/\t/g, '        ')).map((t, k) => (
+                    <span key={k} className={`t-${t.cls}`}>{t.text}</span>
+                  ))}
+                  {line === '' ? ' ' : ''}
+                </span>
               </span>
             </div>
           );

@@ -326,6 +326,11 @@ export class Machine {
     return e.line;
   }
 
+  /** Source line that emitted the byte at a physical address (instruction or data), if any. */
+  sourceLineAt(address: number): number | null {
+    return this.program?.lineByAddress.get(address)?.line ?? null;
+  }
+
   /** Physical start address of the first instruction emitted for a source line. */
   addressOfLine(line: number): number | null {
     const p = this.program;

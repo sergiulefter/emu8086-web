@@ -286,6 +286,9 @@ function MemoryList() {
   const cur = physical(cs, ip);
   const len = m.program ? m.disassembleAt(cs, ip).length : 1;
   const segBase = (anchor.segment << 4);
+  // After the user scrolls, EMU8086's address box shows the first visible row instead of the anchor.
+  const [boxTop, setBoxTop] = useState<number | null>(null);
+  const programmatic = useRef(false);
 
   useLayoutEffect(() => {
     const el = ref.current;
@@ -295,17 +298,38 @@ function MemoryList() {
     return () => ro.disconnect();
   }, []);
 
-  // keep the anchor (CS:IP or typed address) visible
+  // keep the anchor (CS:IP, a clicked row or a typed address) visible
   useLayoutEffect(() => {
+    setBoxTop(null);
     const el = ref.current;
     if (!el) return;
     const row = anchor.offset;
     const top = row * ROW;
     if (top < el.scrollTop || top + ROW > el.scrollTop + el.clientHeight) {
-      el.scrollTop = Math.max(0, top - 2 * ROW);
+      const target = Math.max(0, top - 2 * ROW);
+      if (Math.round(el.scrollTop) !== target) programmatic.current = true; // no scroll event when unchanged
+      el.scrollTop = target;
       setScrollTop(el.scrollTop);
     }
-  }, [anchor.segment, anchor.offset, s.session.revision]);
+  }, [anchor.segment, anchor.offset, s.session.revision, s.viewEpoch]);
+
+  const onScroll = (el: HTMLDivElement) => {
+    setScrollTop(el.scrollTop);
+    if (programmatic.current) programmatic.current = false;
+    else setBoxTop(Math.min(0xffff, Math.ceil(el.scrollTop / ROW)));
+  };
+
+  const scrollRows = (n: number) => {
+    const el = ref.current;
+    if (el) el.scrollTop = Math.max(0, el.scrollTop + n * ROW);
+  };
+
+  const pick = (offset: number) => {
+    // a click selects one byte; the disassembly restarts at that byte, even mid-instruction
+    store.memoryAnchor = { segment: anchor.segment, offset };
+    store.disasmAnchor = { segment: anchor.segment, offset };
+    store.selectAddress((segBase + offset) & 0xfffff, 1);
+  };
 
   const first = Math.floor(scrollTop / ROW);
   const count = Math.ceil(height / ROW) + 2;
@@ -313,13 +337,15 @@ function MemoryList() {
   for (let i = first; i < Math.min(first + count, 0x10000); i++) {
     const a = (segBase + i) & 0xfffff;
     const b = m.mem.bytes[a];
-    // EMU8086 paints every byte of the instruction at CS:IP with the selection colour.
+    // EMU8086 paints every byte of the instruction at CS:IP blue, selected bytes yellow, and both green.
     const isCur = m.program !== null && a >= cur && a < cur + len;
+    const isPick = s.isSelected(a);
     rows.push(
       <div
         key={i}
-        className={`row ${isCur ? 'cur' : ''}`}
+        className={`row ${isCur ? 'cur' : ''} ${isPick ? 'pick' : ''}`}
         style={{ position: 'absolute', top: i * ROW, left: 0, right: 0 }}
+        onClick={() => pick(i)}
         onDoubleClick={() => store.setWatch({ kind: 'mem', segment: anchor.segment, offset: i })}
         title="double-click: extended value viewer (word at this address)"
       >
@@ -329,8 +355,20 @@ function MemoryList() {
   }
   return (
     <div className="col-list">
-      <AddressBox label="memory address" segment={anchor.segment} offset={anchor.offset} onGo={(segment, offset) => { store.memoryAnchor = { segment, offset }; store.emit(); }} />
-      <div className="list sunken" ref={ref} onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)} data-testid="memory-list">
+      <AddressBox label="memory address" segment={anchor.segment} offset={boxTop ?? anchor.offset} onGo={(segment, offset) => { store.memoryAnchor = { segment, offset }; store.emit(); }} />
+      <div
+        className="list sunken"
+        ref={ref}
+        tabIndex={0}
+        onScroll={(e) => onScroll(e.currentTarget)}
+        onKeyDown={(e) => {
+          // arrow keys scroll the view by one row; they do not move the selection (as in EMU8086)
+          const page = Math.max(1, Math.floor(height / ROW) - 1);
+          const step = { ArrowDown: 1, ArrowUp: -1, PageDown: page, PageUp: -page }[e.key];
+          if (step) { e.preventDefault(); scrollRows(step); }
+        }}
+        data-testid="memory-list"
+      >
         <div style={{ height: 0x10000 * ROW, position: 'relative' }}>{rows}</div>
       </div>
     </div>
@@ -389,6 +427,16 @@ function DisassemblyList() {
     store.emit();
   };
 
+  // A click selects the whole instruction; the memory list jumps to it, the disassembly stays put.
+  const pick = (offset: number, length: number) => {
+    store.memoryAnchor = { segment: anchor.segment, offset };
+    store.selectAddress(physical(anchor.segment, offset), length);
+  };
+  const sel = s.selectedAddress;
+  const boxOffset = s.selectionFresh() && sel !== null && ((sel - (anchor.segment << 4)) & 0xfffff) <= 0xffff
+    ? (sel - (anchor.segment << 4)) & 0xffff
+    : anchor.offset;
+
   const contextItems = (addr: number): MenuEntry[] => [
     { label: 'set break point', action: () => { store.session.machine.breakpoints.add(addr); store.emit(); } },
     { label: 'clear break point', disabled: !m.breakpoints.has(addr), action: () => { store.session.machine.breakpoints.delete(addr); store.emit(); } },
@@ -401,7 +449,7 @@ function DisassemblyList() {
 
   return (
     <div className="col-list">
-      <AddressBox label="disassembly address" segment={anchor.segment} offset={anchor.offset} onGo={(segment, offset) => { store.disasmAnchor = { segment, offset }; store.emit(); }} />
+      <AddressBox label="disassembly address" segment={anchor.segment} offset={boxOffset} onGo={(segment, offset) => { store.disasmAnchor = { segment, offset }; store.emit(); }} />
       <div
         className="list sunken"
         ref={ref}
@@ -420,12 +468,12 @@ function DisassemblyList() {
           return (
             <div
               key={l.offset + ':' + addr}
-              className={`row ${isCur ? 'cur' : ''} ${s.selectedAddress === addr ? 'sel' : ''} ${m.breakpoints.has(addr) ? 'bp' : ''}`}
+              className={`row ${isCur ? 'cur' : ''} ${sel === addr ? 'pick' : ''} ${m.breakpoints.has(addr) ? 'bp' : ''}`}
               style={{ paddingLeft: 10, position: 'relative' }}
               title={`${hex4(anchor.segment)}:${hex4(l.offset)}  (${hex5(addr)})`}
-              onClick={() => store.selectAddress(addr)}
+              onClick={() => pick(l.offset, l.d.length)}
               onDoubleClick={() => store.toggleBreakpointAt(addr)}
-              onContextMenu={(e) => { e.preventDefault(); store.selectAddress(addr); setMenu({ x: e.clientX, y: e.clientY, addr }); }}
+              onContextMenu={(e) => { e.preventDefault(); pick(l.offset, l.d.length); setMenu({ x: e.clientX, y: e.clientY, addr }); }}
             >
               {l.d.text}
             </div>

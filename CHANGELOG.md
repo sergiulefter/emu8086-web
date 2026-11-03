@@ -13,6 +13,12 @@ Fixes from comparing classroom programs side by side with EMU8086 4.08 running o
 - **Memory list:** every byte of the instruction at CS:IP is highlighted in blue (the trailing bytes were
   yellow). Control-character names follow EMU8086: `BACK`, `NEWL`, `CRET`, `SPA` (space; previously no name)
   and `RES`. `1Bh` shows its glyph. Addresses and decimal values are grey.
+- **Selecting bytes in the emulator** works as in EMU8086. Clicking a memory row selects that byte in yellow
+  and restarts the disassembly at it, even mid-instruction. Clicking a disassembly line selects every byte of
+  its instruction. A selection under CS:IP turns green and stays across steps. The address boxes show the
+  selection, or the first visible row after scrolling, and return to CS:IP after each instruction. The source
+  window shows the selected line inverted until the next step. Arrow keys scroll the memory list. List colours
+  were sampled from EMU8086: blue `#0000FF`, yellow `#FFFF96`, green `#009B00`.
 
 ## 1.1.0 — 2026-10-31
 
