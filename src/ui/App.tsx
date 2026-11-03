@@ -10,7 +10,7 @@ import {
   FlagsWindow, LexFlagsWindow, ListingWindow, MemoryWindow, SourceWindow, StackWindow, SymbolsWindow, ValueViewer, VarsWindow,
 } from './windows/ToolWindows';
 import { AboutDialog, ConfirmDialog, GotoDialog, MessageDialog, OptionsDialog, StatusDialog, TemplateDialog } from './windows/Dialogs';
-import { AsciiWindow, CalculatorWindow, ConvertorWindow, DebugLogWindow, HelpWindow } from './windows/Utilities';
+import { AsciiWindow, CalculatorWindow, ConvertorWindow, DebugLogWindow } from './windows/Utilities';
 
 /** Kept in the task bar while a program is loaded, even after being closed, so they can be restored. */
 const PINNED_WHEN_LOADED: WinId[] = ['emulator', 'screen', 'source'];
@@ -90,7 +90,6 @@ export function App() {
         <CalculatorWindow />
         <ConvertorWindow />
         <AsciiWindow />
-        <HelpWindow />
         <StatusDialog />
         <TemplateDialog />
         <GotoDialog />

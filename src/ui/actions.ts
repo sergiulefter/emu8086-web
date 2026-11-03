@@ -267,6 +267,19 @@ export function physicalOf(seg: number, off: number): number {
   return physical(seg, off);
 }
 
+/** URL of the bundled EMU8086 4.08 documentation (public/documentation), relative to the app. */
+export const DOCUMENTATION_URL = 'documentation/';
+
+/** F1 / help: EMU8086 opens its HTML documentation in a separate window; reuse one browser tab for it. */
 export function openHelp(): void {
-  store.open('help');
+  window.open(new URL(DOCUMENTATION_URL, document.baseURI).href, 'emu8086-documentation');
+}
+
+/** help → check for an update: the browser version is always the one just loaded from the web. */
+export function checkForUpdate(): void {
+  store.showMessage({
+    title: 'message',
+    icon: 'info',
+    text: 'emu8086-web runs from the web: every time the page is loaded it is the latest version.\nnothing needs to be installed or updated.',
+  });
 }

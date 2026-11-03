@@ -440,13 +440,6 @@ input.sunken:read-only { background: #fff; }
 .ascii-grid div { text-align: center; padding: 3px 0; border-right: 1px solid #eee; border-bottom: 1px solid #eee; cursor: default; }
 .ascii-grid div:hover, .ascii-grid div.sel { background: var(--select); color: #fff; }
 
-.help-body { flex: 1 1 auto; overflow: auto; background: #fff; padding: 8px 14px; font-size: 13px; line-height: 1.45; user-select: text; }
-.help-body h2 { font-size: 15px; margin: 12px 0 4px; }
-.help-body h3 { font-size: 13px; margin: 10px 0 2px; }
-.help-body code, .help-body pre { font-family: var(--mono); font-size: 14px; }
-.help-body pre { background: #f7f7f7; border: 1px solid #e3e3e3; padding: 6px; overflow: auto; }
-.help-body table { border-collapse: collapse; }
-.help-body td, .help-body th { border: 1px solid #ddd; padding: 2px 6px; text-align: left; vertical-align: top; }
 
 .debug-log { flex: 1 1 auto; min-height: 0; margin: 0; overflow: auto; background: #fff; padding: 4px; font-family: var(--mono); font-size: 14px; line-height: 14px; white-space: pre-wrap; user-select: text; }
 

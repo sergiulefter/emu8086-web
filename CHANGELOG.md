@@ -19,6 +19,14 @@ Fixes from comparing classroom programs side by side with EMU8086 4.08 running o
   selection, or the first visible row after scrolling, and return to CS:IP after each instruction. The source
   window shows the selected line inverted until the next step. Arrow keys scroll the memory list. List colours
   were sampled from EMU8086: blue `#0000FF`, yellow `#FFFF96`, green `#009B00`.
+- **EMU8086 documentation:** F1, the help button and help → documentation and tutorials open EMU8086 4.08's own
+  HTML documentation and tutorials, unchanged, at `/documentation/` in a separate browser tab. A bottom frame shows
+  the EMU8086.COM copyright notice and emu8086.com link that its licence requires. SHA-256 tests keep the files
+  identical to the installed originals. This replaces the in-app quick guide.
+- **Menus match EMU8086 4.08:** edit → advanced gains show line numbers, tabify / untabify selection and display
+  whitespace. advanced editor macros, fasm, set output directory and the eight virtual device programs are listed
+  greyed out. help → check for an update is added. file → new no longer lists an extra "empty" item; the code
+  template dialog keeps "empty workspace".
 
 ## 1.1.0 — 2026-10-31
 

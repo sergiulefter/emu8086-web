@@ -125,7 +125,9 @@ function emulatorMenus(): MenuDef[] {
     },
     {
       label: 'virtual devices',
-      items: [{ label: 'no virtual devices are installed', disabled: true, title: 'virtual devices (traffic lights, stepper motor...) are outside the course scope' }],
+      // the device programs EMU8086 4.08 lists; none of them runs in the browser version
+      items: ['LED_Display.exe', 'Printer.exe', 'Robot.exe', 'Simple.exe', 'Stepper_motor.exe', 'Thermometer.exe', 'Traffic_Lights.exe', 'VGA_STATE.exe']
+        .map((label): MenuEntry => ({ label, disabled: true, title: 'virtual devices are not available in the browser version' })),
     },
     {
       label: 'virtual drive',
@@ -142,6 +144,8 @@ function emulatorMenus(): MenuDef[] {
       label: 'help',
       items: [
         { label: 'documentation and tutorials', shortcut: 'F1', action: A.openHelp },
+        'sep',
+        { label: 'check for an update...', action: A.checkForUpdate },
         'sep',
         { label: 'about...', action: () => store.open('about') },
       ],

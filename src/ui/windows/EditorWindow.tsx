@@ -11,7 +11,7 @@ import * as A from '../actions';
 import { EXAMPLES } from '../../examples';
 import {
   bookmarksField, changeCase, clearBookmarksEffect, commentBlock, createEditorState, jumpBookmark,
-  setDiagnosticsEffect, toggleBookmarkEffect,
+  setDiagnosticsEffect, setLineNumbers, setWhitespace, tabifySelection, toggleBookmarkEffect,
 } from '../editor/asmEditor';
 import { exportHtml, printSource } from '../exporters';
 
@@ -32,6 +32,10 @@ function cmd(name: string): void {
     case 'outdent': indentLess(v); break;
     case 'comment': commentBlock(v, true); break;
     case 'uncomment': commentBlock(v, false); break;
+    case 'tabify': tabifySelection(v, true); break;
+    case 'untabify': tabifySelection(v, false); break;
+    case 'lineNumbers': store.updateSettings({ showLineNumbers: !store.settings.showLineNumbers }); setLineNumbers(v, store.settings.showLineNumbers); break;
+    case 'whitespace': store.updateSettings({ showWhitespace: !store.settings.showWhitespace }); setWhitespace(v, store.settings.showWhitespace); break;
     case 'lower': changeCase(v, false); break;
     case 'upper': changeCase(v, true); break;
     case 'toggleBookmark': v.dispatch({ effects: toggleBookmarkEffect.of(v.state.selection.main.head) }); break;
@@ -56,6 +60,8 @@ function cmd(name: string): void {
   }
 }
 
+const MACROS_UNAVAILABLE = 'keystroke macros are not supported yet';
+
 function editorMenus(): MenuDef[] {
   const exampleItems: MenuEntry[] = EXAMPLES.map((ex, i) => ({ label: ex.name, action: () => A.openExample(i) }));
   return [
@@ -69,8 +75,6 @@ function editorMenus(): MenuDef[] {
             { label: 'exe template', disabled: true, title: 'EXE programs (segments, relocation) are not supported yet' },
             { label: 'bin template', action: () => A.newFromTemplate('bin') },
             { label: 'boot template', action: () => A.newFromTemplate('boot') },
-            'sep',
-            { label: 'empty', action: () => A.newFromTemplate('empty') },
           ],
         },
         'sep',
@@ -110,10 +114,27 @@ function editorMenus(): MenuDef[] {
         { label: 'uncomment block', shortcut: 'Ctrl+Alt+W', action: () => cmd('uncomment') },
         'sep',
         {
+          label: 'advanced editor macros',
+          submenu: [
+            ...Array.from({ length: 10 }, (_, i): MenuEntry => ({ label: `Play Macro ${i + 1}`, disabled: true, title: MACROS_UNAVAILABLE })),
+            'sep',
+            { label: 'Repeat Next Command...', shortcut: 'Ctrl+R', disabled: true, title: MACROS_UNAVAILABLE },
+            'sep',
+            { label: 'Record new Keystroke Macro', disabled: true, title: MACROS_UNAVAILABLE },
+          ],
+        },
+        {
           label: 'advanced',
           submenu: [
+            { label: 'show line numbers', checked: store.settings.showLineNumbers, action: () => cmd('lineNumbers') },
+            'sep',
+            { label: 'tabify selection', action: () => cmd('tabify') },
+            { label: 'untabify selection', action: () => cmd('untabify') },
+            'sep',
             { label: 'lowercase selection', shortcut: 'Ctrl+L', action: () => cmd('lower') },
             { label: 'uppercase selection', shortcut: 'Ctrl+U', action: () => cmd('upper') },
+            'sep',
+            { label: 'display whitespace', checked: store.settings.showWhitespace, action: () => cmd('whitespace') },
           ],
         },
       ],
@@ -137,6 +158,9 @@ function editorMenus(): MenuDef[] {
       items: [
         { label: 'compile', action: A.compile },
         { label: 'compile and load in the emulator', shortcut: 'F5', action: A.emulate },
+        { label: 'fasm', disabled: true, title: 'the flat assembler (FASM, #fasm#) is not available in the browser version' },
+        'sep',
+        { label: 'set output directory...', disabled: true, title: 'the browser saves files through downloads; there is no output directory' },
       ],
     },
     {
@@ -158,6 +182,8 @@ function editorMenus(): MenuDef[] {
       label: 'help',
       items: [
         { label: 'documentation and tutorials', shortcut: 'F1', action: A.openHelp },
+        'sep',
+        { label: 'check for an update...', action: A.checkForUpdate },
         'sep',
         { label: 'about...', action: () => store.open('about') },
       ],
@@ -221,6 +247,8 @@ export function EditorWindow() {
         { key: 'Ctrl-l', run: (v) => changeCase(v, false) },
         { key: 'Ctrl-u', run: (v) => changeCase(v, true) },
       ],
+      showLineNumbers: store.settings.showLineNumbers,
+      showWhitespace: store.settings.showWhitespace,
     });
     const v = new EditorView({ state, parent: host.current });
     view = v;

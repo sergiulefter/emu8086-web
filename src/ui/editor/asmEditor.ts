@@ -2,9 +2,10 @@
  * CodeMirror 6 configuration for the source editor and helpers shared with
  * the read-only "original source code" window.
  */
-import { EditorState, RangeSet, StateEffect, StateField, type Extension } from '@codemirror/state';
+import { Compartment, EditorState, RangeSet, StateEffect, StateField, type Extension } from '@codemirror/state';
 import {
-  Decoration, EditorView, GutterMarker, drawSelection, gutter, highlightActiveLine, keymap, lineNumbers,
+  Decoration, EditorView, GutterMarker, drawSelection, gutter, highlightActiveLine, highlightTrailingWhitespace,
+  highlightWhitespace, keymap, lineNumbers,
   type DecorationSet,
 } from '@codemirror/view';
 import { HighlightStyle, StreamLanguage, syntaxHighlighting, type StringStream } from '@codemirror/language';
@@ -233,6 +234,43 @@ export function changeCase(view: EditorView, upper: boolean): boolean {
   return true;
 }
 
+/**
+ * edit → advanced → tabify / untabify selection: rewrites the leading whitespace of every selected line
+ * with tabs (8 columns, as the editor's tab size) or with spaces.
+ */
+export function tabifySelection(view: EditorView, tabify: boolean): boolean {
+  const { state } = view;
+  const changes: { from: number; to: number; insert: string }[] = [];
+  const seen = new Set<number>();
+  for (const r of state.selection.ranges) {
+    for (let n = state.doc.lineAt(r.from).number; n <= state.doc.lineAt(r.to).number; n++) {
+      if (seen.has(n)) continue;
+      seen.add(n);
+      const line = state.doc.line(n);
+      const lead = /^[ \t]*/.exec(line.text)![0];
+      let cols = 0;
+      for (const ch of lead) cols = ch === '\t' ? (Math.floor(cols / 8) + 1) * 8 : cols + 1;
+      const insert = tabify ? '\t'.repeat(Math.floor(cols / 8)) + ' '.repeat(cols % 8) : ' '.repeat(cols);
+      if (insert !== lead) changes.push({ from: line.from, to: line.from + lead.length, insert });
+    }
+  }
+  if (changes.length) view.dispatch({ changes });
+  return true;
+}
+
+// edit → advanced → show line numbers / display whitespace (toggled at runtime)
+const lineNumbersSlot = new Compartment();
+const whitespaceSlot = new Compartment();
+const lineNumbersExt = () => lineNumbers({ formatNumber: (n) => (n < 100 ? String(n).padStart(2, '0') : String(n)) });
+
+export function setLineNumbers(view: EditorView, on: boolean): void {
+  view.dispatch({ effects: lineNumbersSlot.reconfigure(on ? lineNumbersExt() : []) });
+}
+
+export function setWhitespace(view: EditorView, on: boolean): void {
+  view.dispatch({ effects: whitespaceSlot.reconfigure(on ? [highlightWhitespace(), highlightTrailingWhitespace()] : []) });
+}
+
 // ------------------------------------------------------------ setup
 const theme = EditorView.theme({
   '&': { backgroundColor: '#ffffff', color: '#000' },
@@ -257,6 +295,8 @@ export interface EditorCallbacks {
   onChange(): void;
   onCursor(line: number, col: number): void;
   extraKeys: Parameters<typeof keymap.of>[0];
+  showLineNumbers?: boolean;
+  showWhitespace?: boolean;
 }
 
 export function createEditorState(text: string, cb: EditorCallbacks): EditorState {
@@ -266,7 +306,8 @@ export function createEditorState(text: string, cb: EditorCallbacks): EditorStat
       markers: (v) => v.state.field(bookmarksField),
       initialSpacer: () => bookmarkMarker,
     }),
-    lineNumbers({ formatNumber: (n) => (n < 100 ? String(n).padStart(2, '0') : String(n)) }),
+    lineNumbersSlot.of(cb.showLineNumbers === false ? [] : lineNumbersExt()),
+    whitespaceSlot.of(cb.showWhitespace ? [highlightWhitespace(), highlightTrailingWhitespace()] : []),
     history(),
     drawSelection(),
     highlightActiveLine(),

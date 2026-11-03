@@ -31,6 +31,14 @@ emu8086-web contains **no EMU8086 code, binaries, icons, help text or library fi
 The fonts are redistributed unmodified, with attribution, under CC BY-SA 4.0. The ShareAlike term applies to the
 fonts themselves, not to this program.
 
+**EMU8086 4.08 documentation** (`public/documentation/`, served at https://emu8086.sergiulefter.com/documentation/):
+Copyright (c) 2015 by EMU8086.COM. All rights reserved. The emu8086 `ReadMe.txt` allows anyone to reproduce,
+upload, copy or translate this information on two conditions: the use includes the EMU8086.COM copyright notice
+and a hyperlink to http://www.emu8086.com. The files are copied unchanged from the 4.08 installation
+(`C:\emu8086\documentation`), with SHA-256 checks in `tests/unit/documentation.test.ts`. The only changes are
+a bottom frame added to the frameset `index.html` and the new `notice.html` it shows, which carries that
+notice and link. The documentation is **not** covered by this project's MIT licence.
+
 These MIT licences require their copyright and permission notices to accompany copies of the code. The minified
 bundle does not keep licence comments. Instead, every build writes **`LICENSES.txt`** next to `index.html`, and
 the live site serves it at https://emu8086.sergiulefter.com/LICENSES.txt. The file contains this

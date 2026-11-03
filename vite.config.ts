@@ -41,6 +41,11 @@ function bundledLicenses(): Plugin {
         'The fonts in fonts/ are The Ultimate Oldschool PC Font Pack by VileR (int10h.org), licensed under',
         'CC BY-SA 4.0 (see fonts/LICENSE-oldschool-pc-fonts.txt). They are NOT covered by the MIT License above.',
         '',
+        'documentation/ is the EMU8086 4.08 documentation, reproduced unchanged.',
+        'Copyright (c) 2015 by EMU8086.COM All rights reserved. Portions Copyright 1997-2010 Barry Allyn.',
+        'The emu8086 ReadMe allows reproducing it with this copyright notice and a link to http://www.emu8086.com.',
+        'It is NOT covered by the MIT License above.',
+        '',
         'The application bundle (assets/*.js) includes the following third-party packages:',
         ...[...seen.entries()].sort(([a], [b]) => a.localeCompare(b)).flatMap(([name, p]) => [
           '',
@@ -56,11 +61,38 @@ function bundledLicenses(): Plugin {
   };
 }
 
+/**
+ * Serves public/documentation/ the way Cloudflare static assets do in production: `/documentation`
+ * redirects to `/documentation/`, which serves the folder's index.html (the EMU8086 frameset). Without
+ * this the dev and preview servers answer both URLs with the app's own index.html.
+ */
+function documentationIndex(): Plugin {
+  type Next = () => void;
+  type Req = { url?: string };
+  type Res = { statusCode: number; setHeader(k: string, v: string): void; end(): void };
+  const handle = (req: Req, res: Res, next: Next) => {
+    const [path, query = ''] = (req.url ?? '').split('?');
+    if (path === '/documentation') {
+      res.statusCode = 308;
+      res.setHeader('Location', `/documentation/${query ? `?${query}` : ''}`);
+      res.end();
+      return;
+    }
+    if (path === '/documentation/') req.url = `/documentation/index.html${query ? `?${query}` : ''}`;
+    next();
+  };
+  return {
+    name: 'documentation-index',
+    configureServer(server) { server.middlewares.use(handle); },
+    configurePreviewServer(server) { server.middlewares.use(handle); },
+  };
+}
+
 export default defineConfig(({ command }) => ({
   // Production builds use relative URLs so the same dist/ works at any path,
   // e.g. Cloudflare static hosting or `npm run preview`.
   base: command === 'build' ? './' : '/',
-  plugins: [react(), bundledLicenses()],
+  plugins: [react(), bundledLicenses(), documentationIndex()],
   server: { port: 5173, strictPort: false },
   build: { chunkSizeWarningLimit: 1200 },
   test: {

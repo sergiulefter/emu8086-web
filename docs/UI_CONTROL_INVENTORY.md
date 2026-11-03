@@ -26,7 +26,6 @@ Confidence is the confidence in the *EMU8086 behaviour* being reproduced.
 | file | new ▸ exe template | EXE programs are not supported | — | — | BIN, TPL | disabled | high |
 | file | new ▸ bin template | BIN template with `#make_bin#`, `#LOAD_SEGMENT=0500h#` … `HLT` | — | — | BIN, TPL | implemented | high |
 | file | new ▸ boot template | `#make_boot#`, `org 7c00h` template (loaded at 0000:7C00) | — | — | BIN, TPL | implemented | high |
-| file | new ▸ empty | Blank document | — | — | BIN | implemented | high |
 | file | examples ▸ | 10 bundled original examples, including the professor's H and diagonal HELLO | — | — | BIN, D-START | implemented (own example set) | high |
 | file | open... | Opens a local `.asm` file (File System Access API in Chrome, file input in Firefox) | — | — | BIN | implemented | high |
 | file | save / save as... | Saves the source with CRLF line endings: writes back to the opened file where supported, otherwise downloads | — | — | BIN | implemented | high |
@@ -42,20 +41,21 @@ Confidence is the confidence in the *EMU8086 behaviour* being reproduced.
 | edit | indent / outdent | Indent or outdent the selected lines | — | Tab / Shift+Tab | BIN, D-EDIT | implemented | high |
 | edit | comment block / uncomment block | Adds or removes `;` at the start of the selected lines | — | **Ctrl+Alt+Q / Ctrl+Alt+W** (EMU8086 uses Ctrl+Q/W; browsers reserve those) | BIN, D-EDIT | implemented | high |
 | edit | advanced ▸ lowercase / uppercase selection | Changes the case of the selection | — | Ctrl+L / Ctrl+U | BIN | implemented | high |
-| edit | advanced ▸ tabify, display whitespace, show line numbers; advanced editor macros ▸ | CodeMax-specific features | — | — | BIN | omitted | high |
+| edit | advanced ▸ show line numbers (✓), tabify / untabify selection, display whitespace (✓) | Line-number gutter and whitespace markers toggle and are remembered; tabify / untabify rewrite the leading whitespace of the selected lines (8-column tabs) | — | — | BIN | implemented (E2E) | high |
+| edit | advanced editor macros ▸ Play Macro 1-10, Repeat Next Command..., Record new Keystroke Macro | Keystroke macros | — | (Ctrl+R) | BIN | disabled | high |
 | bookmarks | toggle bookmark | Bookmark marker in the gutter | — | Ctrl+F2 | BIN, D-EDIT | implemented | high |
 | bookmarks | previous / next bookmark | Cycles through bookmarks | ≥1 bookmark | Shift+F2 / F2 | BIN, D-EDIT | implemented | high |
 | bookmarks | jump to first / jump to last / clear all bookmarks | — | — | — | BIN | implemented | high |
 | assembler | compile | Assembles and shows the *assembler status* dialog; does not execute | — | — | BIN, D-COMP | implemented (E2E) | high |
 | assembler | compile and load in the emulator | Assembles, loads a fresh machine, opens the emulator and original-source windows; on errors shows the status dialog instead | — | F5 | BIN, D-START | implemented (E2E T001) | high |
-| assembler | fasm / set output directory... | No external assembler or file-system output folder | — | — | BIN | omitted | high |
+| assembler | fasm / set output directory... | No external assembler or file-system output folder | — | — | BIN | disabled | high |
 | emulator | show emulator | Opens the emulator window (empty if nothing is loaded) | — | — | BIN, D-EMU | implemented | high |
 | emulator | assemble and load in the emulator | Same as F5 | — | — | BIN | implemented | high |
 | math | multi base calculator | *calculator - expression evaluator* (`~ * / % + - << >> & ^ \|`, result base, signed byte/word interpretation) | — | — | BIN, D-NUM | implemented | high |
 | math | base converter | *base convertor* (8/16 bit; HEX, DEC signed/unsigned, OCT, BIN, char) | — | — | BIN, D-NUM | implemented | high |
 | ascii codes | (top-level item) | Code page 437 table with decimal, hex and binary codes | — | — | BIN | implemented (layout unverified) | medium |
-| help | documentation and tutorials | In-app guide: keys, syntax, services, limitations | — | F1 | BIN | implemented (own content) | high |
-| help | check for an update... | Offline application | — | — | BIN | omitted | high |
+| help | documentation and tutorials | Opens the unchanged EMU8086 4.08 HTML documentation at /documentation/ in a separate browser tab | — | F1 | BIN | implemented (E2E) | high |
+| help | check for an update... | Message: the web version is always the latest one | — | — | BIN | implemented | high |
 | help | about... | About box with credits and licences | — | — | BIN | implemented | high |
 
 ### Toolbar `new · open · examples▾ · save▾ | compile · emulate | calculator · convertor · options · help · about` (BIN, REF-01, REF-02)
@@ -106,9 +106,9 @@ a `.asm` file on the editor opens it. Implemented.
 | view | extended value viewer, stack, variables, memory, symbol table, listing, original source code, options, flags, lexical flag analyzer, ascii codes, emulator screen | Open the corresponding windows | — | — | BIN | implemented |
 | view | arithmetic & logical unit | — | — | — | BIN | disabled |
 | external | start debug.exe / command prompt / run (external) | Not possible from a browser | — | (F12) | BIN | disabled |
-| virtual devices | (device list) | Virtual devices are outside the course scope | — | — | BIN, D-TUT12 | disabled placeholder |
+| virtual devices | LED_Display.exe, Printer.exe, Robot.exe, Simple.exe, Stepper_motor.exe, Thermometer.exe, Traffic_Lights.exe, VGA_STATE.exe | The EMU8086 4.08 device list; devices do not run in the browser | — | — | BIN, D-TUT12 | disabled |
 | virtual drive | boot from virtual floppy, write boot sector, write .bin to floppy, create new floppy drive | — | — | — | BIN | disabled |
-| help | documentation and tutorials / about... | As in the editor | — | F1 | BIN | implemented |
+| help | documentation and tutorials / check for an update... / about... | As in the editor | — | F1 | BIN | implemented |
 
 ### Toolbar (BIN, REF-01, REF-02, REF-04)
 | Label | Effect | Status |

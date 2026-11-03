@@ -12,7 +12,7 @@ import { physical } from '../cpu/memory';
 
 export type WinId =
   | 'editor' | 'emulator' | 'screen' | 'source' | 'viewer' | 'flags' | 'stack' | 'vars' | 'debug'
-  | 'memory' | 'calculator' | 'convertor' | 'ascii' | 'options' | 'help' | 'about' | 'status'
+  | 'memory' | 'calculator' | 'convertor' | 'ascii' | 'options' | 'about' | 'status'
   | 'message' | 'symbols' | 'listing' | 'template' | 'lexflags' | 'goto' | 'find' | 'confirm';
 
 export interface Win {
@@ -64,6 +64,10 @@ export interface Settings {
   instructionLimit: number;
   screenFont: number;
   activateScreen: boolean;
+  /** edit → advanced → show line numbers (on by default, as in EMU8086). */
+  showLineNumbers: boolean;
+  /** edit → advanced → display whitespace. */
+  showWhitespace: boolean;
 }
 
 function viewport() {
@@ -103,7 +107,6 @@ function defaultLayout(): Record<WinId, Omit<Win, 'id' | 'z' | 'open' | 'minimiz
     convertor: { x: 260, y: 140, w: 360, h: 280 },
     ascii: { x: 240, y: 90, w: 520, h: 420 },
     options: center(420, 330),
-    help: { x: 120, y: 40, w: Math.min(760, vw - 40), h: Math.min(620, vh - 40) },
     about: center(400, 260),
     status: center(520, 330),
     message: center(380, 190),
@@ -132,7 +135,6 @@ export const WINDOW_TITLES: Record<WinId, string> = {
   convertor: 'base convertor',
   ascii: 'ascii codes',
   options: 'options',
-  help: 'documentation and tutorials',
   about: 'about emu8086-web',
   status: 'assembler status',
   message: 'message',
@@ -148,7 +150,7 @@ export const WINDOW_TITLES: Record<WinId, string> = {
 /** Windows reachable from the task bar (dialogs are not listed). */
 export const TASK_WINDOWS: WinId[] = [
   'editor', 'emulator', 'screen', 'source', 'viewer', 'flags', 'stack', 'vars', 'debug', 'memory',
-  'calculator', 'convertor', 'ascii', 'symbols', 'listing', 'lexflags', 'help',
+  'calculator', 'convertor', 'ascii', 'symbols', 'listing', 'lexflags',
 ];
 
 function loadJson<T>(key: string): T | null {
@@ -232,6 +234,8 @@ export class AppStore {
       instructionLimit: st.instructionLimit ?? 5_000_000,
       screenFont: st.screenFont ?? 0,
       activateScreen: st.activateScreen ?? true,
+      showLineNumbers: st.showLineNumbers ?? true,
+      showWhitespace: st.showWhitespace ?? false,
     };
     this.session.stepDelay = this.settings.stepDelay;
     this.session.instructionLimit = this.settings.instructionLimit;

@@ -26,9 +26,16 @@ explicit message. Nothing is faked.
 - **Icons and artwork** are original drawings in the same spirit. EMU8086 icons are not copied.
 - **Options dialog** offers step delay, instruction limit per run, auto-show screen, screen font and window layout.
   It does not offer EMU8086's editor colour and font customisation.
-- **Help**: F1 opens this project's in-app quick guide. It does not reproduce EMU8086's bundled HTML
-  documentation. `.RADIX` and `#MEM` use source directives and the existing editor/emulator views;
+- **Help**: F1, the help button and help → documentation and tutorials open EMU8086 4.08's own HTML
+  documentation, unchanged, at `/documentation/` in a separate browser tab. A bottom frame shows the copyright notice
+  and emu8086.com link that its licence requires. On the live site, Cloudflare serves the pages without the `.html`
+  extension (`/documentation/help`). Because the documentation describes EMU8086 itself, some of what it covers is
+  not available here: see this file and `SUPPORT_MATRIX.md`. help → check for an update only reports that the web
+  version is always current. `.RADIX` and `#MEM` use source directives and the existing editor/emulator views;
   no feature-specific controls have been added. See `research/EMU8086_DIRECTIVE_UI_RESEARCH.md`.
+- **Menus** list the same items as EMU8086 4.08. Items that cannot work in a browser are greyed out with a tooltip:
+  keystroke macros, fasm, set output directory, the virtual devices and the virtual drive. The file menu has no
+  recent-files list and no exit item.
 - **Fonts**: IBM VGA 8×14 stands in for the Windows "Terminal" font, and IBM VGA 9×16 is used for the screen
   (int10h.org, CC BY-SA 4.0). UI text uses Segoe UI or Tahoma when installed, otherwise a sans-serif fallback
   such as DejaVu Sans on Linux.

@@ -89,7 +89,7 @@ the layout. The app remembers the window layout and your current source between 
 | F8 | single step | Shift+F8 | step over |
 | F6 | step back | Ctrl+F8 | run until selected line |
 | F4 | reload | F7 | show current instruction |
-| F11 | debug log (debug.exe commands) | F1 | help |
+| F11 | debug log (debug.exe commands) | F1 | EMU8086 documentation (opens /documentation/) |
 
 ## FAQ
 
@@ -247,6 +247,8 @@ docs/              architecture, ADRs, UI inventory/evidence, support matrix, ve
 
 - [Live emulator](https://emu8086.sergiulefter.com/) and the
   [GitHub repository](https://github.com/sergiulefter/emu8086-web)
+- [EMU8086 4.08 documentation and tutorials](https://emu8086.sergiulefter.com/documentation/): the original
+  EMU8086 help, unchanged (Copyright (c) 2015 by EMU8086.COM, [www.emu8086.com](http://www.emu8086.com)). F1 opens it.
 - [Architecture overview](docs/ARCHITECTURE.md): how the assembler, CPU, DOS layer, screen and debugger fit together
 - [Architecture decision records](docs/adr/) (ADR-001 to ADR-006): CPU engine, assembler, DOS/PSP, VGA text mode,
   step back, window manager
