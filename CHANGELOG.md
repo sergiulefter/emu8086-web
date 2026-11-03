@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.2.0 — 2026-11-03
 
 Fixes from comparing classroom programs side by side with EMU8086 4.08 running on Windows:
 
