@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.3.0 — 2026-11-04
 
 - **Macros:** `name MACRO p1, p2 … ENDM` and `LOCAL` work as in EMU8086 4.08. Macros must be defined before use.
   Arguments are separated by commas or blanks, and quotes keep a string whole. Parameters are substituted as text,
