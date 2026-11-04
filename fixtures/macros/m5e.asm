@@ -1,0 +1,7 @@
+DOIT MACRO ins, r
+ ins r
+ENDM
+ORG 100h
+DOIT INC, AX
+DOIT PUSH, BX
+RET

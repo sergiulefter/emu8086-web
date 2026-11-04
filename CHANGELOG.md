@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+- **Macros:** `name MACRO p1, p2 … ENDM` and `LOCAL` work as in EMU8086 4.08. Macros must be defined before use.
+  Arguments are separated by commas or blanks, and quotes keep a string whole. Parameters are substituted as text,
+  case-insensitively, except in the instruction name and inside quotes. Missing arguments are empty and extra ones
+  are ignored. `LOCAL x` becomes `X_LOC<n>TMP`, the name EMU8086 gives it. Every byte a call produces belongs to the
+  call line, so the source window, break points and error messages point there.
+- **`INCLUDE 'emu8086.inc'`:** EMU8086 4.08's library is bundled unchanged, with its copyright notice and a link to
+  emu8086.com. PRINT, PRINTN, PUTC, GOTOXY, CURSOROFF, CURSORON and the DEFINE_SCAN_NUM, DEFINE_PRINT_STRING,
+  DEFINE_PRINT_NUM, DEFINE_PRINT_NUM_UNS, DEFINE_PTHIS, DEFINE_GET_STRING and DEFINE_CLEAR_SCREEN procedures assemble
+  byte for byte as in EMU8086. Other include file names are reported as not found.
+- **Unsized memory operands** take EMU8086's default size instead of being an error: a byte with no immediate or
+  one in -128..255 (`INC [BX]`, `MOV [DI], 0`), a word otherwise (`MOV [BX], 300`).
+- **Doubled quotes** inside a string stay two quote characters, as in EMU8086 (`DB 'it''s'` is `69 74 27 27 73`).
+- **Listing window** shows all the bytes of a macro call line, not only its first instruction.
+- Tests compare 13 programs byte for byte with executables produced by EMU8086 4.08 and check 7 of its macro error
+  cases on the same lines.
+
 ## 1.2.1 — 2026-11-03
 
 - **Memory list position:** when the list jumps to follow CS:IP (after loading, or when execution leaves the

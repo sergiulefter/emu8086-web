@@ -1,0 +1,8 @@
+M2 MACRO a, b
+ MOV AX, a
+ MOV BX, b
+ENDM
+ORG 100h
+M2 1 2
+M2 3	4
+RET

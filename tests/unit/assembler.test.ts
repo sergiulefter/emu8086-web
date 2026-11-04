@@ -142,9 +142,10 @@ describe('8086 rules and EMU8086 conveniences', () => {
     expect(errorsOf('org 100h\nmov ds, 0B800h')[0].message).toMatch(/cannot use segment register with an immediate value/);
   });
 
-  it('memory-to-memory and size ambiguities are errors', () => {
+  it('memory-to-memory is an error; an unsized memory operand gets EMU8086 4.08 default size', () => {
     expect(errorsOf('org 100h\nmov [bx], [si]')[0].message).toMatch(/memory to memory/);
-    expect(errorsOf('org 100h\ninc [bx]')[0].message).toMatch(/operand size is unknown/);
+    // byte without an immediate or with one in -128..255, word otherwise (see fixtures/emu8086/unsized_operands*)
+    expect(hexOf('org 100h\ninc [bx]\nmov [bx], 5\nmov [bx], 300')).toBe('fe07' + 'c60705' + 'c7072c01');
     expect(errorsOf('org 100h\nmov ax, [ax]')[0].message).toMatch(/only BX, BP, SI and DI/);
   });
 
@@ -168,7 +169,7 @@ describe('8086 rules and EMU8086 conveniences', () => {
 
   it('unsupported directives produce honest diagnostics', () => {
     expect(errorsOf('.model small')[0].message).toMatch(/not supported/);
-    expect(errorsOf("include 'emu8086.inc'")[0].message).toMatch(/INCLUDE is not supported/);
+    expect(errorsOf("include 'other.inc'")[0].message).toMatch(/cannot open include file: other\.inc/);
   });
 
   it('END entry must be 100h in a COM file', () => {

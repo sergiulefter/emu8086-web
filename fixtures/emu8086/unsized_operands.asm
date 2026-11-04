@@ -1,0 +1,10 @@
+ORG 100h
+MOV [DI], 0
+MOV [BX], 5
+MOV [BX+2], 1234h
+MOV [SI], 300
+INC [BX]
+ADD [SI], 7
+CMP [DI], 1
+PUSH [BX]
+RET

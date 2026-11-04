@@ -57,7 +57,8 @@ export function lexLine(text: string, line: number, defaultRadix = 10): LexedLin
       while (j < text.length) {
         if (text[j] === c) {
           if (text[j + 1] === c) {
-            chars.push(c.charCodeAt(0));
+            // EMU8086 4.08 keeps a doubled quote as two quote characters: DB 'it''s' is 69 74 27 27 73
+            chars.push(c.charCodeAt(0), c.charCodeAt(0));
             j += 2;
             continue;
           }

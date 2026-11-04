@@ -58,7 +58,6 @@ emu8086-web is an independent re-creation of the EMU8086 *workflow* and is not a
 
 **Not supported yet:**
 - EXE-style programs (`.model`, `.data`, `.code`, segments)
-- `MACRO` and `INCLUDE` (including `emu8086.inc`)
 - graphics video modes
 - file, disk and mouse services
 - EMU8086's virtual devices
@@ -114,8 +113,8 @@ Yes, completely free, with no account and no ads.
 
 **Can it run programs written for EMU8086?**
 Most COM-style programs (`org 100h`) for coursework run unchanged. That covers direct writes to `B800:0000`, the
-supported INT 21h / INT 10h / INT 16h services, and `RET` or `INT 21h/4Ch` to exit. EXE-style programs, macros,
-`INCLUDE 'emu8086.inc'`, graphics modes and file I/O are not supported yet
+supported INT 21h / INT 10h / INT 16h services, macros, `INCLUDE 'emu8086.inc'`, and `RET` or `INT 21h/4Ch` to exit.
+EXE-style programs, graphics modes and file I/O are not supported yet
 ([full list](docs/KNOWN_UI_DIFFERENCES.md)).
 
 **Can I inspect registers and memory?**
@@ -137,7 +136,8 @@ code, binaries, icons or library files.
 
 **What are its limitations?**
 - It emulates an 8086 with the DOS and BIOS services that coursework typically uses. It is not a full PC.
-- It has no EXE programs, macros, graphics modes, disk or file I/O, or virtual devices.
+- It has no EXE programs, graphics modes, disk or file I/O, or virtual devices. INCLUDE can open only the bundled
+  `emu8086.inc`.
 - Each run stops after 5 million instructions by default (configurable in options), so endless loops can't hang
   the page.
 

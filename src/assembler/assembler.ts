@@ -8,6 +8,8 @@
  */
 import { lexLine, type Token } from './lexer';
 import { parseMemoryPresets } from './memoryPresets';
+import { preprocess, type IncludeFiles, type SourceLine } from './preprocess';
+import { INCLUDE_FILES } from './includes';
 import {
   ExprParser, lookupReg, parseOperand, splitOperands,
   type Expr, type MemOperand, type Operand, type RegOperand, type SymbolKindLookup,
@@ -31,6 +33,9 @@ interface Stmt {
   label?: { name: string; col: number };
   /** Enclosing PROC type for RET → RETF. */
   procFar: boolean;
+  /** Set when the statement comes from a macro call or an included file, with the expanded text. */
+  from?: SourceLine['from'];
+  src?: string;
   // pass state
   address: number;
   size: number;
@@ -72,10 +77,6 @@ const UNSUPPORTED_DIRECTIVES: Record<string, string> = {
   '.STACK': 'simplified segment directives (.MODEL/.DATA/.CODE/.STACK) are not supported yet; write a COM program starting with ORG 100h',
   '.STARTUP': '.STARTUP is not supported yet',
   '.EXIT': '.EXIT is not supported yet; use MOV AX, 4C00h / INT 21h',
-  INCLUDE: 'INCLUDE is not supported: library files such as emu8086.inc are not bundled (they are proprietary); paste the needed code directly',
-  MACRO: 'MACRO definitions are not supported yet',
-  ENDM: 'MACRO definitions are not supported yet',
-  LOCAL: 'MACRO definitions are not supported yet',
   LABEL: 'the LABEL directive is not supported; use "name:" or a DB/DW variable',
   EXTRN: 'EXTRN/PUBLIC (multi-module programs) are not supported',
   PUBLIC: 'EXTRN/PUBLIC (multi-module programs) are not supported',
@@ -115,7 +116,7 @@ export const MNEMONICS = new Set<string>([
 ]);
 export const DIRECTIVES = new Set<string>([
   'ORG', 'DB', 'DW', 'DD', 'EQU', 'PROC', 'ENDP', 'END', 'DUP', 'OFFSET', 'PTR', 'BYTE', 'WORD', 'DWORD',
-  'SHORT', 'NEAR', 'FAR', '.RADIX', ...IGNORED_DIRECTIVES, ...Object.keys(UNSUPPORTED_DIRECTIVES),
+  'SHORT', 'NEAR', 'FAR', '.RADIX', 'INCLUDE', 'MACRO', 'ENDM', 'LOCAL', ...IGNORED_DIRECTIVES, ...Object.keys(UNSUPPORTED_DIRECTIVES),
 ]);
 
 const RESERVED = new Set<string>([...MNEMONICS, ...DIRECTIVES, 'MOD', 'SHL', 'SHR', 'AND', 'OR', 'XOR', 'NOT', 'HIGH', 'LOW', 'LENGTH', 'SIZE', 'TYPE', 'SEG']);
@@ -123,14 +124,21 @@ const RESERVED = new Set<string>([...MNEMONICS, ...DIRECTIVES, 'MOD', 'SHL', 'SH
 export interface AssembleOptions {
   /** Upper bound on address-assignment passes. */
   maxPasses?: number;
+  /** Files INCLUDE can open (lower-case names); defaults to the bundled emu8086.inc. */
+  includes?: IncludeFiles;
 }
 
 export function assemble(source: string, options: AssembleOptions = {}): AssembleResult {
-  return new Assembler(source).run(options.maxPasses ?? 40);
+  return new Assembler(source, options.includes ?? INCLUDE_FILES).run(options.maxPasses ?? 40);
 }
 
 class Assembler {
-  private readonly lines: string[];
+  private readonly lines: SourceLine[];
+  /** User source lines whose code comes from a macro call or an INCLUDE (diagnostics point at the whole line). */
+  private readonly expanded: Map<number, { name: string; col: number; length: number }>;
+  /** Origin and text of the line being parsed, copied into its statements. */
+  private curFrom: SourceLine['from'];
+  private curText = '';
   private readonly stmts: Stmt[] = [];
   private readonly syms = new Map<string, Sym>();
   private readonly textEqu = new Map<string, Token[]>();
@@ -193,15 +201,20 @@ class Assembler {
   }
   binf: Record<string, number> = {};
 
-  constructor(source: string) {
-    this.lines = source.split(/\r\n|\r|\n/);
+  constructor(source: string, includes: IncludeFiles) {
+    const pre = preprocess(source, includes);
+    this.lines = pre.lines;
+    this.expanded = pre.expandedLines;
+    this.diags.push(...pre.diagnostics);
   }
 
-  private error(e: unknown, fallbackLine: number): void {
+  private error(e: unknown, fallbackLine: number, from?: SourceLine['from'], text?: string): void {
+    // errors in code from a macro or an included file name it (and the expanded line, when known)
+    const where = from ? ` [${from.kind === 'macro' ? 'in macro' : 'in file'} ${from.name}${text?.trim() ? `: ${text.trim()}` : ''}]` : '';
     if (e instanceof AsmError) {
-      this.diags.push({ severity: 'error', message: e.message, line: e.line, col: e.col, length: e.length });
+      this.diags.push({ severity: 'error', message: e.message + where, line: e.line, col: e.col, length: e.length });
     } else {
-      this.diags.push({ severity: 'error', message: String(e instanceof Error ? e.message : e), line: fallbackLine, col: 1, length: 1 });
+      this.diags.push({ severity: 'error', message: String(e instanceof Error ? e.message : e) + where, line: fallbackLine, col: 1, length: 1 });
     }
   }
 
@@ -217,8 +230,11 @@ class Assembler {
     let inComment: string | null = null;
     let radix = 10;
     for (let i = 0; i < this.lines.length; i++) {
-      const lineNo = i + 1;
-      const text = this.lines[i];
+      const src = this.lines[i];
+      const lineNo = src.line;
+      const text = src.text;
+      this.curFrom = src.from;
+      this.curText = text;
       if (inComment !== null) {
         if (text.includes(inComment)) inComment = null;
         continue;
@@ -263,7 +279,7 @@ class Assembler {
         const stop = this.parseStatement(toks, lineNo, text.length + 1, procStack);
         if (stop) break;
       } catch (e) {
-        this.error(e, lineNo);
+        this.error(e, lineNo, src.from, text);
       }
     }
     for (const p of procStack) this.error(new AsmError(`no ENDP for: ${p.name}`, p.line, p.col, p.name.length), p.line);
@@ -319,7 +335,10 @@ class Assembler {
   }
 
   private newStmt(line: number, col: number, op: string, endCol: number, procFar: boolean): Stmt {
-    return { line, col, op, prefixes: [], args: [], endCol, procFar, address: 0, size: 0, longJump: false };
+    return {
+      line, col, op, prefixes: [], args: [], endCol, procFar, address: 0, size: 0, longJump: false,
+      ...(this.curFrom ? { from: this.curFrom, src: this.curText } : {}),
+    };
   }
 
   /** Returns true when END was reached. */
@@ -661,6 +680,11 @@ class Assembler {
     const symbols: SymbolInfo[] = [...this.syms.values()].map((s) => ({
       name: s.name, kind: s.kind, value: s.value & 0xffff, size: s.size, count: s.count, line: s.line,
     }));
+    // columns of code expanded from a macro or an included file do not exist in the user's line: mark the call
+    for (const d of this.diags) {
+      const x = this.expanded.get(d.line);
+      if (x) { d.col = x.col; d.length = x.length; }
+    }
     this.diags.sort((a, b) => a.line - b.line || a.col - b.col);
     const ok = !parseErrors && !this.diags.some((d) => d.severity === 'error');
     if (!ok) outputType = outputType ?? 'com';
@@ -722,7 +746,7 @@ class Assembler {
         if (emit) emit(st, bytes);
         lc += bytes.length;
       } catch (e) {
-        if (this.final) this.error(e, st.line);
+        if (this.final) this.error(e, st.line, st.from, st.src);
         else if (e instanceof AsmError && !/undefined symbol|has no value/.test(e.message)) {
           // Structural errors do not depend on pass; report them once in the final pass.
         }
@@ -804,10 +828,15 @@ class Assembler {
       throw new AsmError(`operands do not match: ${which} (${m.size === 1 ? 'byte' : 'word'}) differs from register ${other!.kind === 'reg' ? other!.reg.name : ''} (${otherSize === 1 ? 'byte' : 'word'})`, st.line, m.col);
     }
     const size = (m.size || otherSize) as 0 | 1 | 2;
-    if (!size) {
-      throw new AsmError('operand size is unknown: use BYTE PTR / WORD PTR (or b. / w.), e.g. MOV BYTE PTR [BX], 5', st.line, m.col);
+    if (size) return size;
+    // No PTR, variable or register size: EMU8086 4.08 picks a byte when the immediate fits in -128..255
+    // (MOV [BX], 5 / ADD [SI], -5), a word otherwise (MOV [BX], 300), and a byte with no immediate
+    // (INC [BX], SHL [BX], 1, MUL [BX]), as its listings show. emu8086.inc relies on it (MOV [DI], 0).
+    if (other?.kind === 'imm') {
+      const v = this.val(other.expr, st.line);
+      return v.known && v.v >= -128 && v.v <= 255 ? 1 : 2;
     }
-    return size;
+    return 1;
   }
 
   private regOrMem(st: Stmt, o: Operand, what: string): asserts o is RegOperand | MemOperand {
@@ -975,7 +1004,7 @@ class Assembler {
         this.regOrMem(st, a, op);
         if (a.kind === 'reg' && a.reg.isSeg) throw new AsmError('TEST cannot use segment registers', L, a.col);
         if (b.kind === 'imm') {
-          const size = a.kind === 'reg' ? a.reg.size : this.memSize(st, a);
+          const size = a.kind === 'reg' ? a.reg.size : this.memSize(st, a, b);
           if (a.kind === 'reg' && a.reg.code === 0) {
             return size === 1 ? [0xa8, this.imm(st, b, 1)] : [0xa9, ...le16(this.imm(st, b, 2))];
           }
@@ -1114,7 +1143,7 @@ class Assembler {
       }
       return [...this.segPrefix(a), size === 1 ? 0x88 : 0x89, ...this.modrm(st, b.reg.code, a)];
     }
-    const size = this.memSize(st, a);
+    const size = this.memSize(st, a, b);
     const im = size === 1 ? [this.imm(st, b, 1)] : le16(this.imm(st, b, 2));
     return [...this.segPrefix(a), size === 1 ? 0xc6 : 0xc7, ...this.modrm(st, 0, a), ...im];
   }
@@ -1128,7 +1157,7 @@ class Assembler {
     if ((a.kind === 'reg' && a.reg.isSeg) || (b.kind === 'reg' && b.reg.isSeg)) throw new AsmError(`${name} cannot use segment registers`, L, a.col);
     if (b.kind === 'far') throw new AsmError(`${name}: invalid operand`, L, b.col);
     if (b.kind === 'imm') {
-      const size = a.kind === 'reg' ? a.reg.size : this.memSize(st, a);
+      const size = a.kind === 'reg' ? a.reg.size : this.memSize(st, a, b);
       if (a.kind === 'reg' && a.reg.code === 0) {
         return size === 1 ? [0x04 | (n << 3), this.imm(st, b, 1)] : [0x05 | (n << 3), ...le16(this.imm(st, b, 2))];
       }

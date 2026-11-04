@@ -1,0 +1,19 @@
+ORG 100h
+MOV [BX], 255
+MOV [BX], 256
+MOV [BX], -1
+MOV [BX], -128
+MOV [BX], -129
+MOV [BX], 0FFFFh
+ADD [BX], 200
+ADD [BX], -5
+SHL [BX], 1
+SHR [BX], CL
+MUL [BX]
+NOT [BX]
+NEG [BX]
+DEC [SI]
+TEST [BX], 3
+TEST [BX], 1000h
+MOV [BX], 'A'
+RET

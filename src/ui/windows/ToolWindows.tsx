@@ -501,7 +501,9 @@ export function ListingWindow() {
   src.forEach((line, i) => {
     const entries = byLine.get(i + 1);
     const first = entries?.[0];
-    const hexBytes = first ? first.bytes.slice(0, 6).map((b) => b.toString(16).toUpperCase().padStart(2, '0')).join(' ') + (first.bytes.length > 6 ? '…' : '') : '';
+    // a macro call or INCLUDE line owns all the code it expands to (EMU8086 lists it on that line)
+    const all = entries?.flatMap((e) => e.bytes) ?? [];
+    const hexBytes = first ? all.slice(0, 6).map((b) => b.toString(16).toUpperCase().padStart(2, '0')).join(' ') + (all.length > 6 ? '…' : '') : '';
     out.push(`${String(i + 1).padStart(4)}  ${first ? hex4(first.address) : '    '}  ${hexBytes.padEnd(19)} ${line}`);
   });
   return (

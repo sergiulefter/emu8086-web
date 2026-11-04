@@ -39,6 +39,11 @@ and a hyperlink to http://www.emu8086.com. The files are copied unchanged from t
 a bottom frame added to the frameset `index.html` and the new `notice.html` it shows, which carries that
 notice and link. The documentation is **not** covered by this project's MIT licence.
 
+**EMU8086 4.08 `emu8086.inc`** (`src/assembler/includes/emu8086.inc`, bundled into the app for `INCLUDE 'emu8086.inc'`):
+Copyright (c) 2015 by EMU8086.COM. All rights reserved. http://www.emu8086.com. It is copied unchanged from the 4.08
+installation (`C:\emu8086\inc\emu8086.inc`) and reproduced under the same `ReadMe.txt` permission, with this
+copyright notice and link, which `LICENSES.txt` also carries. It is **not** covered by this project's MIT licence.
+
 These MIT licences require their copyright and permission notices to accompany copies of the code. The minified
 bundle does not keep licence comments. Instead, every build writes **`LICENSES.txt`** next to `index.html`, and
 the live site serves it at https://emu8086.sergiulefter.com/LICENSES.txt. The file contains this

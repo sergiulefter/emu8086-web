@@ -1,0 +1,7 @@
+M MACRO
+ lbl: NOP
+ JMP lbl
+ENDM
+ORG 100h
+M
+RET

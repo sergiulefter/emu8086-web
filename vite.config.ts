@@ -46,6 +46,10 @@ function bundledLicenses(): Plugin {
         'The emu8086 ReadMe allows reproducing it with this copyright notice and a link to http://www.emu8086.com.',
         'It is NOT covered by the MIT License above.',
         '',
+        'The application bundle includes EMU8086 4.08\'s emu8086.inc, unchanged, for INCLUDE \'emu8086.inc\'.',
+        'Copyright (c) 2015 by EMU8086.COM All rights reserved. http://www.emu8086.com',
+        'Reproduced under the same emu8086 ReadMe permission. It is NOT covered by the MIT License above.',
+        '',
         'The application bundle (assets/*.js) includes the following third-party packages:',
         ...[...seen.entries()].sort(([a], [b]) => a.localeCompare(b)).flatMap(([name, p]) => [
           '',

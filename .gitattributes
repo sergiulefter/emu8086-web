@@ -1,2 +1,6 @@
 # EMU8086 4.08 documentation is stored byte-for-byte as installed (CRLF, UTF-8 BOM); no line-ending conversion.
 public/documentation/** -text
+# emu8086.inc is bundled byte-for-byte from the EMU8086 4.08 installation.
+src/assembler/includes/*.inc -text
+# Executables produced by the real EMU8086 4.08 (expected bytes for tests).
+fixtures/**/*.com binary

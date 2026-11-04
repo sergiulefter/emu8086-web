@@ -23,12 +23,16 @@ EMU8086 compatibility (ADR-001).
 `[BX]`, `[BP]`, `[SI]`, `[DI]`, `[BX+SI]`, `[BX+DI]`, `[BP+SI]`, `[BP+DI]`, each with an optional 8- or 16-bit
 displacement; direct `[1234h]`; variables (`var`, `var[BX]`, `[var+2]`, `var+2[SI]`); segment overrides
 (`ES:[DI]`, `[ES:DI]`, `CS:var`). `BP`-based addresses default to SS. Size comes from the register,
-`BYTE/WORD/DWORD PTR`, `b.`/`w.`, or the variable type. An ambiguous size is an error.
+`BYTE/WORD/DWORD PTR`, `b.`/`w.`, or the variable type. Without any of these, the size follows EMU8086 4.08: a byte
+when the immediate fits in -128..255 or there is no immediate (`MOV [BX], 5`, `INC [BX]`), a word otherwise
+(`MOV [BX], 300`).
 
 ## Directives and syntax
 | Item | Status |
 |---|---|
-| `ORG`, `DB`, `DW`, `DD`, `n DUP(…)` (nested), `?`, strings `'…'` / `"…"` with doubled quotes | supported |
+| `ORG`, `DB`, `DW`, `DD`, `n DUP(…)` (nested), `?`, strings `'…'` / `"…"` (a doubled quote stays two quote characters, as in EMU8086) | supported |
+| `name MACRO p1, p2 … ENDM` (or `name ENDM`), `LOCAL` | supported as in EMU8086 4.08: defined before use; arguments split by commas or blanks, quotes keep a string whole; textual, case-insensitive substitution (not in the instruction name or inside quotes); missing arguments are empty, extra ones ignored; `LOCAL x` becomes `X_LOC<n>TMP`; errors point at the call line |
+| `INCLUDE 'emu8086.inc'` (quoted or bare name) | supported: EMU8086 4.08's emu8086.inc is bundled unchanged (PRINT, PRINTN, PUTC, GOTOXY, CURSOROFF, CURSORON and the DEFINE_… procedures). Other file names are reported as not found. |
 | `EQU` (numeric, text, strings; an EQU of a variable acts as that variable), `=` (redefinable) | supported |
 | `name PROC [NEAR\|FAR]` / `name ENDP` (names must match; RET in a FAR PROC → RETF; `CALL far_proc` → `PUSH CS` + `CALL`), `END [label]` (also the BIN entry point) | supported |
 | `NAME`, `TITLE`, `PAGE`, `ASSUME`, `.8086`, `.186`, `SUBTTL` | accepted and ignored |
@@ -39,7 +43,7 @@ displacement; direct `[1234h]`; variables (`var`, `var[BX]`, `[var+2]`, `var+2[S
 | `.RADIX base` | supported: numeric base 2–16, decimal selectors; explicit suffixes and `0x` override the default |
 | `#make_com#`, `#make_bin#`, `#make_boot#`, `#LOAD_SEGMENT=…#`, `#LOAD_OFFSET=…#`, `#CS=…#` … `#SP=…#`, `#AX=…#`, `#AL=…#` … | supported |
 | `#MEM=address,bytes-address,bytes#` | supported for BIN/boot: physical or segment:offset addresses, hexadecimal byte strings; reapplied on reset/reload |
-| `#make_exe#`, `.MODEL`, `.DATA`, `.CODE`, `.STACK`, `SEGMENT/ENDS`, `MACRO/ENDM/LOCAL`, `INCLUDE`, `LABEL`, `EXTRN/PUBLIC`, `DQ`, `DT`, `SEG` | explicit "not supported" diagnostic |
+| `#make_exe#`, `.MODEL`, `.DATA`, `.CODE`, `.STACK`, `SEGMENT/ENDS`, `LABEL`, `EXTRN/PUBLIC`, `DQ`, `DT`, `SEG` | explicit "not supported" diagnostic |
 | `#fasm#`, `#masm#`, `#start=…#` | warning, ignored |
 
 `.RADIX` starts at decimal for each assembly and affects subsequent unsuffixed literals, including data,

@@ -41,9 +41,10 @@ explicit message. Nothing is faked.
   such as DejaVu Sans on Linux.
 
 ## Not supported yet (greyed out, or an explicit message)
-- EXE programs (`.MODEL`, `.DATA`, `.CODE`, `SEGMENT/ENDS`, `@data`), `MACRO/ENDM/LOCAL`, `INCLUDE` (including
-  `emu8086.inc`, which is proprietary and not bundled), `#fasm#`, `DQ`/`DT`, the `LABEL` directive, FPU
-  instructions.
+- EXE programs (`.MODEL`, `.DATA`, `.CODE`, `SEGMENT/ENDS`, `@data`), `#fasm#`, `DQ`/`DT`, the `LABEL` directive,
+  FPU instructions.
+- INCLUDE can open only the bundled `emu8086.inc`: a browser has no folders, so your own include files are reported
+  as not found. Macro error messages are worded differently from EMU8086's but appear on the same line.
 - Graphics video modes (INT 10h AH=00h with AL=13h), pixel services, mouse (INT 33h), disk and file services
   (INT 13h, INT 21h 39h–57h), printer (INT 17h, INT 21h/05h).
 - Virtual devices, virtual floppy drives, external debug.exe or command prompt, stop on condition, ALU and FPU
