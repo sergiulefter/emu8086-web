@@ -27,3 +27,12 @@ and is not bundled.
   architecturally undefined (see `tests/conformance`).
 - The four 80186 encodings that EMU8086 accepts (`PUSH imm`, `PUSHA`, `POPA`) run only when
   `cpu.allow186` is set. The app sets it; the conformance run keeps strict 8086 behaviour.
+- `cpu.emu8086` (set by the app, off for the conformance run) reproduces how EMU8086 4.08 steps and sets flags,
+  as recorded from its debug.exe emulation (`fixtures/traces`, `tests/integration/emu8086Steps.test.ts`):
+  - A prefix (`ES:`, `CS:`, `REPE`, `REPNE`, `LOCK`) is a step of its own. A REP string instruction does one
+    iteration per step and returns to its prefix until CX is 0 or a compare ends it.
+  - Undefined flags follow EMU8086: MUL/IMUL keep SF/ZF/AF/PF; AND/OR/XOR/TEST and all shifts keep AF; right
+    shifts and rotates by more than one bit keep OF; AAM clears OF/AF/CF; DAA/DAS clear OF and change SF/ZF
+    only with the 60h adjustment; AAA/AAS take SF/ZF from AH.
+  - Two of its results differ from an 8086: DAS decides the 60h adjustment from the already adjusted AL
+    (9Bh → 95h with CF=0), and SAHF also clears OF, DF, IF and TF.

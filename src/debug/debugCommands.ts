@@ -68,12 +68,40 @@ export function registersText(session: EmulatorSession): string {
   ].join(' ');
   const r = c.regs;
   const d = m.disassembleAt(c.sregs[1], c.ip);
-  const bytes = Array.from({ length: d.length }, (_, i) => hex2(m.mem.read8(physical(c.sregs[1], c.ip + i)))).join('');
+  // EMU8086's debug log shows all four bytes of a ROM trap (FF FF CD nn), indented, though it lists BIOS DI as 2
+  const trap = d.text === 'BIOS DI';
+  const bytes = Array.from({ length: trap ? 4 : d.length }, (_, i) => hex2(m.mem.read8(physical(c.sregs[1], c.ip + i)))).join('');
   return (
     `AX=${hex4(r[AX])}  BX=${hex4(r[BX])}  CX=${hex4(r[CX])}  DX=${hex4(r[DX])}  SP=${hex4(r[SP])}  BP=${hex4(r[BP])}  SI=${hex4(r[SI])}  DI=${hex4(r[DI])}\n` +
     `DS=${hex4(c.sregs[3])}  ES=${hex4(c.sregs[0])}  SS=${hex4(c.sregs[2])}  CS=${hex4(c.sregs[1])}  IP=${hex4(c.ip)}   ${flags}\n` +
-    `${hex4(c.sregs[1])}:${hex4(c.ip)} ${bytes.padEnd(14)} ${d.text}`
+    `${hex4(c.sregs[1])}:${hex4(c.ip)} ${bytes.padEnd(14)}${trap ? '    ' : ''}${d.text}${memoryNote(session, d)}`
   );
+}
+
+const EA_BASE: number[][] = [[BX, SI], [BX, DI], [BP, SI], [BP, DI], [SI], [DI], [BP], [BX]];
+
+/**
+ * EMU8086 appends the memory operand's current value: `MOV AL, [BX]		DS:0200=00h`. The segment shown is the
+ * pending prefix's, otherwise DS (EMU8086 writes DS for [BP] too, though the access uses SS); the value is a word
+ * when a 16-bit register is an operand.
+ */
+function memoryNote(session: EmulatorSession, d: ReturnType<EmulatorSession['machine']['disassembleAt']>): string {
+  const mem = d.mem;
+  if (!mem) return '';
+  const c = session.machine.cpu;
+  let ea: number;
+  let seg = 3; // DS: what EMU8086 shows
+  let access = 3; // the segment the CPU really uses (SS with BP)
+  if ('direct' in mem) ea = mem.direct;
+  else {
+    const base = mem.rm === 6 && mem.mod === 0 ? [] : EA_BASE[mem.rm];
+    ea = (base.reduce((s, reg) => s + c.regs[reg], 0) + mem.disp) & 0xffff;
+    if (base.includes(BP)) access = 2;
+  }
+  if (c.pendingSegment >= 0) seg = access = c.pendingSegment;
+  const word = /\b(AX|BX|CX|DX|SI|DI|BP|SP)\b/.test(d.text.replace(/\[[^\]]*\]/g, ''));
+  const value = word ? hex4(session.machine.mem.read16(c.sregs[access], ea)) : hex2(session.machine.mem.read8(physical(c.sregs[access], ea)));
+  return `\t\t${['ES', 'CS', 'SS', 'DS'][seg]}:${hex4(ea)}=${value}h`;
 }
 
 export function runDebugCommand(ctx: DebugContext, line: string): string {
@@ -103,7 +131,7 @@ export function runDebugCommand(ctx: DebugContext, line: string): string {
         'numbers are hexadecimal; addr is seg:off, off, ds:[bx], or a variable name.',
       ].join('\n');
     case 'r': {
-      if (!arg.length) return registersText(ctx.session);
+      if (!arg.length) return '\n' + registersText(ctx.session); // EMU8086 leaves a blank line after the command
       const name = arg[0].toUpperCase();
       if (name === 'F') return runDebugCommand(ctx, `rf ${arg.slice(1).join(' ')}`);
       if (arg.length < 2) {
@@ -142,7 +170,7 @@ export function runDebugCommand(ctx: DebugContext, line: string): string {
         if (m.waiting) { out.push('waiting for keyboard input (type in the emulator screen)'); break; }
         out.push(registersText(ctx.session));
       }
-      return out.join('\n\n');
+      return '\n' + out.join('\n\n');
     }
     case 'p': {
       if (!m.canStep) return 'no program to step';

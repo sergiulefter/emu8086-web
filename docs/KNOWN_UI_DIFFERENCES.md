@@ -53,6 +53,14 @@ explicit message. Nothing is faked.
   buffer is filled from the emulator screen.
 
 ## Behaviour notes
+- Single-stepping follows EMU8086 4.08 step for step (recorded from its debug.exe emulation, see
+  `fixtures/traces`): a prefix such as `REPE` or `ES:` is its own step, and a REP string instruction does one
+  iteration per step. Registers and flags, including the ones the 8086 leaves undefined, match at every recorded
+  step. Three display bugs of EMU8086's debug log are deliberately not copied, because the program runs the same:
+  - right after an INT returns, short-jump targets are shown 100h too high (`JMP 020Ah` for a jump to 010Ah);
+  - the value note of `[BX + DI] + disp16` uses a wrong address;
+  - that note says `DS:` for `[BP]` operands. We write `DS:` too, but read the value from SS like the CPU.
+- `IN` from a port without a device reads 0, as in EMU8086.
 - `#MEM` source directives are honored for BIN/boot programs. External `.binf` sidecars are not imported or
   exported, so open the original `.asm` source to retain its memory presets. COM use is rejected explicitly.
 - `CX` holds the program size when a COM program starts. This follows 4.08 screenshots; there is no explicit

@@ -35,7 +35,9 @@ describe('debug.exe emulation', () => {
   it('r, t, rf, d, u, e and register assignment', () => {
     const s = session("org 100h\nmov ax, 1234h\nmov bx, 2\nret\nmsg db 'Hi$'");
     const ctx: DebugContext = { session: s };
-    expect(runDebugCommand(ctx, 'r')).toContain('0700:0100 B83412         MOV AX, 01234h');
+    // EMU8086 layout: a blank line after the command, bytes padded to 14 columns
+    expect(runDebugCommand(ctx, 'r')).toContain('\nAX=0000');
+    expect(runDebugCommand(ctx, 'r')).toContain('0700:0100 B83412        MOV AX, 01234h');
     const t = runDebugCommand(ctx, 't');
     expect(t).toContain('AX=1234');
     expect(runDebugCommand(ctx, 'r bx 00ff')).toBe('BX 00FF');
@@ -44,7 +46,7 @@ describe('debug.exe emulation', () => {
     expect(s.machine.cpu.flags & 1).toBe(1);
     expect(runDebugCommand(ctx, 'd cs:107 l 3')).toContain('48-69 24');
     expect(runDebugCommand(ctx, 'd msg l 3')).toContain('Hi$');
-    expect(runDebugCommand(ctx, 'u 100 l 3')).toBe('0700:0100 B83412         MOV AX, 01234h');
+    expect(runDebugCommand(ctx, 'u 100 l 3')).toMatch(/^0700:0100 B83412 +MOV AX, 01234h$/);
     expect(runDebugCommand(ctx, "e ds:200 'AB' 43")).toBe('3 byte(s) written at 0700:0200');
     expect(s.machine.mem.read8(0x7200)).toBe(0x41);
     expect(runDebugCommand(ctx, 'd zz:1')).toBe('invalid address: zz:1');

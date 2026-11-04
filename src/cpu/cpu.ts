@@ -89,6 +89,16 @@ export class CPU {
    * 8086 behaviour (where 60h-6Fh alias the conditional jumps).
    */
   allow186 = false;
+  /**
+   * EMU8086 4.08 compatibility, set by the emulator (the conformance suite keeps strict 8086 behaviour):
+   *  - a prefix byte (segment override, REP/REPE/REPNE, LOCK) is a step of its own; its effect carries to the
+   *    next step;
+   *  - a REP string instruction does one iteration per step and returns to its prefix until it ends;
+   *  - flags the 8086 leaves undefined follow EMU8086 (MUL keeps SZAP, logic/shift ops keep AF, right
+   *    shifts/rotates by more than 1 keep OF, BCD adjusts clear OF), as do DAS and AAA/AAS.
+   * All of it was measured with EMU8086 4.08's debug.exe emulation (see tests/integration/emu8086Steps).
+   */
+  emu8086 = false;
 
   /** CS:IP of the instruction currently executing (first prefix byte). */
   startCs = 0;
@@ -97,6 +107,26 @@ export class CPU {
   // Per-instruction decoder state.
   private segOverride = -1;
   private repPrefix = 0;
+  /** EMU8086 mode: prefixes stepped over but not yet consumed, and the IP of the first of them (-1: none). */
+  private pendingSeg = -1;
+  private pendingRep = 0;
+  private pendingStart = -1;
+  /** EMU8086 mode: where a REP string instruction loops back to (its first prefix). */
+  private repStart = 0;
+
+  /** Pending-prefix state (EMU8086 mode), saved by the debugger for Step Back. */
+  getPrefixState(): [number, number, number] {
+    return [this.pendingSeg, this.pendingRep, this.pendingStart];
+  }
+
+  setPrefixState(s: readonly [number, number, number]): void {
+    [this.pendingSeg, this.pendingRep, this.pendingStart] = s;
+  }
+
+  /** Segment register forced by a pending prefix (EMU8086 mode), or -1. */
+  get pendingSegment(): number {
+    return this.pendingSeg;
+  }
 
   constructor(readonly mem: Memory) {}
 
@@ -107,6 +137,9 @@ export class CPU {
     this.flags = FLAGS_FIXED_ONES;
     this.halted = false;
     this.instructionCount = 0;
+    this.pendingSeg = -1;
+    this.pendingRep = 0;
+    this.pendingStart = -1;
   }
 
   // ---------------------------------------------------------------- registers
@@ -271,6 +304,7 @@ export class CPU {
       case 4: res = a & b; break; // AND
       default: res = a ^ b; break; // XOR (6)
     }
+    if (this.emu8086 && (op === 1 || op === 4 || op === 6)) f |= this.flags & AF; // EMU8086 keeps AF (undefined)
     res &= mask;
     if (res & sign) f |= SF;
     if (res === 0) f |= ZF;
@@ -363,9 +397,11 @@ export class CPU {
     }
     void bits;
     this.setFlag(CF, cf);
-    this.setFlag(OF, of);
+    // EMU8086 keeps OF for right shifts/rotates by more than one bit, and never changes AF
+    const rightward = op === 1 || op === 3 || op === 5 || op === 7;
+    if (!(this.emu8086 && rightward && count > 1)) this.setFlag(OF, of);
     if (op >= 4) {
-      this.setFlag(AF, af);
+      if (!this.emu8086) this.setFlag(AF, af);
       this.szp(v, word);
     }
     return v;
@@ -458,6 +494,11 @@ export class CPU {
         if (rep === 0xf3 && !zf) break;
         if (rep === 0xf2 && zf) break;
       }
+      if (this.emu8086) {
+        // one iteration per step: back to the prefix, which runs again and finds CX = 0 when done
+        this.ip = this.repStart;
+        break;
+      }
     }
   }
 
@@ -471,13 +512,34 @@ export class CPU {
     const trapBefore = (this.flags & TF) !== 0;
     let op: number;
     let inhibitTrap = false;
-    // Prefixes
-    for (;;) {
+    if (this.emu8086) {
+      // EMU8086 steps a prefix on its own and applies it to the next step
+      const b = this.mem.read8(physical(this.sregs[CS], this.ip));
+      const seg = b === 0x26 || b === 0x2e || b === 0x36 || b === 0x3e;
+      if (seg || b === 0xf2 || b === 0xf3 || b === 0xf0 || b === 0xf1) {
+        this.ip = (this.ip + 1) & 0xffff;
+        if (seg) this.pendingSeg = (b >> 3) & 3;
+        else if (b === 0xf2 || b === 0xf3) this.pendingRep = b;
+        if (this.pendingStart < 0) this.pendingStart = this.startIp;
+        this.instructionCount++;
+        return;
+      }
+      this.segOverride = this.pendingSeg;
+      this.repPrefix = this.pendingRep;
+      this.repStart = this.pendingStart >= 0 ? this.pendingStart : this.startIp;
+      this.pendingSeg = -1;
+      this.pendingRep = 0;
+      this.pendingStart = -1;
       op = this.fetch8();
-      if (op === 0x26 || op === 0x2e || op === 0x36 || op === 0x3e) this.segOverride = (op >> 3) & 3;
-      else if (op === 0xf2 || op === 0xf3) this.repPrefix = op;
-      else if (op === 0xf0 || op === 0xf1) { /* LOCK: no effect on a single CPU */ }
-      else break;
+    } else {
+      // Prefixes
+      for (;;) {
+        op = this.fetch8();
+        if (op === 0x26 || op === 0x2e || op === 0x36 || op === 0x3e) this.segOverride = (op >> 3) & 3;
+        else if (op === 0xf2 || op === 0xf3) this.repPrefix = op;
+        else if (op === 0xf0 || op === 0xf1) { /* LOCK: no effect on a single CPU */ }
+        else break;
+      }
     }
     const r = this.regs;
     const s = this.sregs;
@@ -544,7 +606,9 @@ export class CPU {
             v = sub ? v - 6 : v + 6;
             af = true;
           }
-          if (al > (oldAf ? 0x9f : 0x99) || oldCf) {
+          // EMU8086's DAS tests the already adjusted AL (DAS of 9Bh with CF=0 gives 95h, CF=0)
+          const high = this.emu8086 && sub ? (v & 0xff) > 0x9f : al > (oldAf ? 0x9f : 0x99);
+          if (high || oldCf) {
             v = sub ? v - 0x60 : v + 0x60;
             cf = true;
           }
@@ -552,7 +616,13 @@ export class CPU {
           this.set8(0, v);
           this.setFlag(AF, af);
           this.setFlag(CF, cf);
-          this.szp(v, false);
+          if (this.emu8086) {
+            // EMU8086: SF and ZF change only with the 60h adjustment; PF follows AL; OF is cleared
+            const keep = this.flags & (SF | ZF);
+            this.szp(v, false);
+            if (!cf) this.flags = (this.flags & ~(SF | ZF)) | keep;
+            this.flags &= ~OF;
+          } else this.szp(v, false);
           break;
         }
         case 0x37: case 0x3f: { // AAA / AAS
@@ -566,10 +636,19 @@ export class CPU {
               this.set8(4, (r[AX] >> 8) - 1);
             }
             this.flags |= AF | CF;
+            if (this.emu8086) {
+              // EMU8086 sets SF and ZF from the adjusted AH (AAS of 010Fh gives AX=0009h with ZF=1)
+              const ah = r[AX] >> 8;
+              this.setFlag(SF, (ah & 0x80) !== 0);
+              this.setFlag(ZF, ah === 0);
+            }
           } else {
             this.flags &= ~(AF | CF);
           }
           this.set8(0, r[AX] & 0x0f);
+          if (this.emu8086) {
+            this.flags = (this.flags & ~(PF | OF)) | PARITY[r[AX] & 0xff];
+          }
           break;
         }
         default:
@@ -666,7 +745,9 @@ export class CPU {
       case 0x9b: break; // WAIT: no coprocessor, never busy
       case 0x9c: this.push(this.flags); break;
       case 0x9d: this.setFlagsWord(this.pop()); break;
-      case 0x9e: this.flags = (this.flags & 0xff00) | ((r[AX] >> 8) & 0xd5) | 0x02; break; // SAHF
+      case 0x9e: // SAHF (EMU8086 also clears the upper flags: OF, DF, IF and TF become 0)
+        this.flags = (this.emu8086 ? FLAGS_FIXED_ONES : this.flags & 0xff00) | ((r[AX] >> 8) & 0xd5) | 0x02;
+        break;
       case 0x9f: this.set8(4, this.flags & 0xff); break; // LAHF
       case 0xa0: case 0xa1: case 0xa2: case 0xa3: {
         const off = this.fetch16();
@@ -738,6 +819,7 @@ export class CPU {
         this.set8(4, Math.floor(al / base));
         this.set8(0, al % base);
         this.szp(r[AX] & 0xff, false);
+        if (this.emu8086) this.flags &= ~(OF | AF | CF); // EMU8086 clears the undefined OF, AF and CF
         break;
       }
       case 0xd5: { // AAD
@@ -919,8 +1001,8 @@ export class CPU {
   private mulFlags(overflow: boolean, high: number, word: boolean): void {
     this.setFlag(CF, overflow);
     this.setFlag(OF, overflow);
-    // SF/ZF/PF/AF are architecturally undefined; the 8086 derives them from the high half.
-    this.szp(high, word);
+    // SF/ZF/PF/AF are architecturally undefined; the 8086 derives them from the high half, EMU8086 keeps them.
+    if (!this.emu8086) this.szp(high, word);
   }
 
   private group5(): void {

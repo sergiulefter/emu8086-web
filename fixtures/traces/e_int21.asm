@@ -1,0 +1,12 @@
+ORG 100h
+MOV AH, 9
+LEA DX, msg
+INT 21h
+MOV CX, 3
+l: MOV AH, 2
+MOV DL, '*'
+INT 21h
+LOOP l
+MOV AX, 4C00h
+INT 21h
+msg DB 'Hi$'

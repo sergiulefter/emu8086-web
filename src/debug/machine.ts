@@ -19,6 +19,8 @@ const HISTORY_WRITE_BUDGET = 8_000_000; // journaled numbers kept across all his
 
 interface HistoryEntry {
   regs: Uint16Array; // 8 general + 4 segment + ip + flags
+  /** Prefixes stepped over but not yet applied (EMU8086 stepping). */
+  prefix: [number, number, number];
   halted: boolean;
   count: number;
   writes: number[];
@@ -108,11 +110,13 @@ export class Machine {
 
   constructor() {
     this.cpu.allow186 = true;
+    this.cpu.emu8086 = true; // prefix stepping, REP one iteration per step, EMU8086 undefined flags
     this.env.log = (line) => this.addLog(line);
     this.cpu.ports = {
       input: (port, word) => {
-        this.addLog(`IN ${word ? 'AX' : 'AL'}, port ${port.toString(16).toUpperCase()}h: no device attached, read ${word ? 'FFFFh' : 'FFh'}`);
-        return word ? 0xffff : 0xff;
+        // EMU8086 4.08 reads 0 from ports without a virtual device (checked for 60h, 61h, 70h, 0 and 3F8h)
+        this.addLog(`IN ${word ? 'AX' : 'AL'}, port ${port.toString(16).toUpperCase()}h: no device attached, read 0`);
+        return 0;
       },
       output: (port, value, word) => {
         this.addLog(`OUT port ${port.toString(16).toUpperCase()}h, ${value.toString(16).toUpperCase()}h (${word ? 'word' : 'byte'}): no device attached, ignored`);
@@ -198,6 +202,7 @@ export class Machine {
     regs[13] = cpu.flags;
     const entry: HistoryEntry = {
       regs,
+      prefix: cpu.getPrefixState(),
       halted: cpu.halted,
       count: cpu.instructionCount,
       writes: [],
@@ -279,6 +284,7 @@ export class Machine {
     c.sregs.set(e.regs.subarray(8, 12));
     c.ip = e.regs[12];
     c.flags = e.regs[13];
+    c.setPrefixState(e.prefix);
     c.halted = e.halted;
     c.instructionCount = e.count;
     this.env.state = e.state;

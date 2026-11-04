@@ -1,0 +1,14 @@
+include 'emu8086.inc'
+ORG 100h
+PRINT 'Hi'
+PUTC 'A'
+GOTOXY 3, 2
+CALL pthis
+DB 'ok', 0
+MOV AX, -12
+CALL print_num
+RET
+DEFINE_PRINT_NUM
+DEFINE_PRINT_NUM_UNS
+DEFINE_PTHIS
+END

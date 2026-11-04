@@ -4,3 +4,5 @@ public/documentation/** -text
 src/assembler/includes/*.inc -text
 # Executables produced by the real EMU8086 4.08 (expected bytes for tests).
 fixtures/**/*.com binary
+# debug.exe logs recorded from the real EMU8086 4.08 (kept as recorded).
+fixtures/traces/*.log -text

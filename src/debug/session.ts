@@ -128,8 +128,11 @@ export class EmulatorSession {
     if (!m.canStep) return;
     const c = m.cpu;
     const d = m.disassembleAt(c.sregs[1], c.ip);
-    const t = d.text.replace(/^(REP\w* |LOCK )/, '');
-    if (/^(CALL|INT|LOOP|REP)/.test(d.text) || /^(CALL|INT|LOOP)/.test(t)) {
+    if (/^REP/.test(d.text)) {
+      // a REP prefix is its own step: step over every iteration of the string instruction after it
+      const s = m.disassembleAt(c.sregs[1], (c.ip + d.length) & 0xffff);
+      this.runUntil(physical(c.sregs[1], c.ip + d.length + s.length), c.regs[SP]);
+    } else if (/^(CALL|INT|LOOP)/.test(d.text)) {
       this.runUntil(physical(c.sregs[1], c.ip + d.length), c.regs[SP]);
     } else {
       this.step();

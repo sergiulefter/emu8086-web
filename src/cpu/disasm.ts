@@ -1,7 +1,9 @@
 /**
- * 8086 disassembler producing EMU8086-style text (uppercase mnemonics,
- * `[BX + SI + 05h]` memory operands, `0B800h` immediates, `b.`/`w.` size
- * prefixes where the operand size is not implied by a register).
+ * 8086 disassembler producing EMU8086 4.08 text, as its emulator and debug.exe emulation show it:
+ * uppercase mnemonics with its condition-code spellings (JZ, JNE, JNB, JNBE, JPE, JNL, JNLE …),
+ * `[BX + SI] + 05h` / `[BP] - 02h` memory operands, word values as `01234h`, byte values and short-jump
+ * targets as `0` + digits + `h` (`02h`, `035h`, `0115h`), `b.`/`w.` size prefixes where the operand
+ * size is not implied by a register, and prefixes (ES:, CS:, REPE, REPNE, LOCK) as instructions of their own.
  * 60h/61h/68h/6Ah are shown as the 80186 PUSHA/POPA/PUSH imm forms that the
  * emulator executes in EMU8086-compatibility mode (see CPU.allow186).
  */
@@ -13,13 +15,17 @@ export interface Disassembled {
   text: string;
   /** Near/far branch target if statically known. */
   target?: { segment?: number; offset: number };
+  /** Memory operand: ModRM addressing (rm, mod, displacement) or a direct offset. */
+  mem?: { rm: number; mod: number; disp: number } | { direct: number };
 }
 
 export type ByteReader = (offset: number) => number;
 
 const ALU = ['ADD', 'OR', 'ADC', 'SBB', 'AND', 'SUB', 'XOR', 'CMP'];
 const SHIFTS = ['ROL', 'ROR', 'RCL', 'RCR', 'SHL', 'SHR', 'SETMO', 'SAR'];
-const JCC = ['JO', 'JNO', 'JB', 'JAE', 'JE', 'JNE', 'JBE', 'JA', 'JS', 'JNS', 'JP', 'JNP', 'JL', 'JGE', 'JLE', 'JG'];
+// EMU8086 4.08's spellings (its debug.exe emulation, opcodes 70h-7Fh)
+const JCC = ['JO', 'JNO', 'JB', 'JNB', 'JZ', 'JNE', 'JBE', 'JNBE', 'JS', 'JNS', 'JPE', 'JPO', 'JL', 'JNL', 'JLE', 'JNLE'];
+const PREFIXES: Record<number, string> = { 0x26: 'ES:', 0x2e: 'CS:', 0x36: 'SS:', 0x3e: 'DS:', 0xf2: 'REPNE', 0xf3: 'REPE', 0xf0: 'LOCK', 0xf1: 'LOCK' };
 const EA = ['BX + SI', 'BX + DI', 'BP + SI', 'BP + DI', 'SI', 'DI', 'BP', 'BX'];
 
 export function hex(v: number, digits: number): string {
@@ -31,6 +37,11 @@ export function hexLiteral(v: number, digits: number): string {
   return '0' + hex(v, digits) + 'h';
 }
 
+/** EMU8086 byte value or short-jump target: a leading 0 and only the needed digits (`02h`, `035h`, `0115h`). */
+export function byteLiteral(v: number): string {
+  return '0' + v.toString(16).toUpperCase() + 'h';
+}
+
 export function disassemble(read: ByteReader, offset: number, segment = 0): Disassembled {
   let pos = offset;
   const next = () => read(pos++ & 0xffff) & 0xff;
@@ -38,19 +49,11 @@ export function disassemble(read: ByteReader, offset: number, segment = 0): Disa
     const lo = next();
     return lo | (next() << 8);
   };
-  let segPrefix = '';
-  let rep = '';
-  let lock = '';
-  let op = next();
-  for (let guard = 0; guard < 8; guard++) {
-    if (op === 0x26 || op === 0x2e || op === 0x36 || op === 0x3e) segPrefix = SREG_NAMES[(op >> 3) & 3];
-    else if (op === 0xf2) rep = 'REPNE ';
-    else if (op === 0xf3) rep = 'REP ';
-    else if (op === 0xf0 || op === 0xf1) lock = 'LOCK ';
-    else break;
-    op = next();
-  }
+  const op = next();
+  // EMU8086 lists (and steps) each prefix as an instruction of its own
+  if (PREFIXES[op]) return { length: 1, text: PREFIXES[op] };
 
+  let memRef: Disassembled['mem'];
   interface M { mod: number; reg: number; rm: number; mem: string }
   const modrm = (): M => {
     const b = next();
@@ -58,23 +61,30 @@ export function disassemble(read: ByteReader, offset: number, segment = 0): Disa
     const reg = (b >> 3) & 7;
     const rm = b & 7;
     if (mod === 3) return { mod, reg, rm, mem: '' };
-    let inner: string;
-    if (mod === 0 && rm === 6) inner = hexLiteral(next16(), 4);
-    else {
-      inner = EA[rm];
+    // EMU8086 writes the displacement after the brackets: [BX] + 05h, [BP] - 02h, [BX + DI] + 01234h
+    let mem: string;
+    if (mod === 0 && rm === 6) {
+      const direct = next16();
+      memRef = { direct };
+      mem = `[${hexLiteral(direct, 4)}]`;
+    } else {
+      mem = `[${EA[rm]}]`;
+      let disp = 0;
       if (mod === 1) {
         const d = next();
-        const sd = d & 0x80 ? d - 0x100 : d;
-        inner += sd < 0 ? ` - ${hexLiteral(-sd, 2)}` : ` + ${hexLiteral(sd, 2)}`;
+        disp = d & 0x80 ? d - 0x100 : d;
+        mem += disp < 0 ? ` - ${byteLiteral(-disp)}` : ` + ${byteLiteral(disp)}`;
       } else if (mod === 2) {
-        inner += ` + ${hexLiteral(next16(), 4)}`;
+        disp = next16();
+        mem += ` + ${hexLiteral(disp, 4)}`;
       }
+      memRef = { rm, mod, disp };
     }
-    return { mod, reg, rm, mem: `${segPrefix ? segPrefix + ':' : ''}[${inner}]` };
+    return { mod, reg, rm, mem };
   };
   const rm8 = (m: M, sized = false) => (m.mod === 3 ? REG8_NAMES[m.rm] : (sized ? 'b.' : '') + m.mem);
   const rm16 = (m: M, sized = false) => (m.mod === 3 ? REG16_NAMES[m.rm] : (sized ? 'w.' : '') + m.mem);
-  const imm8 = () => hexLiteral(next(), 2);
+  const imm8 = () => byteLiteral(next());
   const imm16 = () => hexLiteral(next16(), 4);
   const rel8 = () => {
     const d = next();
@@ -84,7 +94,11 @@ export function disassemble(read: ByteReader, offset: number, segment = 0): Disa
     const d = next16();
     return (pos + d) & 0xffff;
   };
-  const moffs = () => `${segPrefix ? segPrefix + ':' : ''}[${hexLiteral(next16(), 4)}]`;
+  const moffs = () => {
+    const direct = next16();
+    memRef = { direct };
+    return `[${hexLiteral(direct, 4)}]`;
+  };
 
   let text = '';
   let target: Disassembled['target'];
@@ -111,7 +125,7 @@ export function disassemble(read: ByteReader, offset: number, segment = 0): Disa
   } else if (op >= 0x60 && op <= 0x7f) {
     const t = rel8();
     target = { offset: t };
-    text = `${JCC[op & 0x0f]} ${hexLiteral(t, 4)}`;
+    text = `${JCC[op & 0x0f]} ${byteLiteral(t)}`;
   } else if (op >= 0x91 && op <= 0x97) {
     text = `XCHG AX, ${REG16_NAMES[op & 7]}`;
   } else if (op >= 0xb0 && op <= 0xb7) {
@@ -133,10 +147,9 @@ export function disassemble(read: ByteReader, offset: number, segment = 0): Disa
         const m = modrm();
         const word = op & 1;
         let imm: string;
-        if (op === 0x83) {
-          const i = next();
-          imm = i & 0x80 ? hexLiteral(0xff00 | i, 4) : hexLiteral(i, 2);
-        } else imm = word ? imm16() : imm8();
+        // EMU8086 shows the raw byte of a sign-extended immediate (ADD BX, -1 is "ADD BX, 0FFh")
+        if (op === 0x83) imm = imm8();
+        else imm = word ? imm16() : imm8();
         text = `${ALU[m.reg]} ${word ? rm16(m, true) : rm8(m, true)}, ${imm}`;
         break;
       }
@@ -171,18 +184,18 @@ export function disassemble(read: ByteReader, offset: number, segment = 0): Disa
       case 0xa1: text = `MOV AX, ${moffs()}`; break;
       case 0xa2: text = `MOV ${moffs()}, AL`; break;
       case 0xa3: text = `MOV ${moffs()}, AX`; break;
-      case 0xa4: text = rep + 'MOVSB'; rep = ''; break;
-      case 0xa5: text = rep + 'MOVSW'; rep = ''; break;
-      case 0xa6: text = (rep === 'REP ' ? 'REPE ' : rep) + 'CMPSB'; rep = ''; break;
-      case 0xa7: text = (rep === 'REP ' ? 'REPE ' : rep) + 'CMPSW'; rep = ''; break;
+      case 0xa4: text = 'MOVSB'; break;
+      case 0xa5: text = 'MOVSW'; break;
+      case 0xa6: text = 'CMPSB'; break;
+      case 0xa7: text = 'CMPSW'; break;
       case 0xa8: text = `TEST AL, ${imm8()}`; break;
       case 0xa9: text = `TEST AX, ${imm16()}`; break;
-      case 0xaa: text = rep + 'STOSB'; rep = ''; break;
-      case 0xab: text = rep + 'STOSW'; rep = ''; break;
-      case 0xac: text = rep + 'LODSB'; rep = ''; break;
-      case 0xad: text = rep + 'LODSW'; rep = ''; break;
-      case 0xae: text = (rep === 'REP ' ? 'REPE ' : rep) + 'SCASB'; rep = ''; break;
-      case 0xaf: text = (rep === 'REP ' ? 'REPE ' : rep) + 'SCASW'; rep = ''; break;
+      case 0xaa: text = 'STOSB'; break;
+      case 0xab: text = 'STOSW'; break;
+      case 0xac: text = 'LODSB'; break;
+      case 0xad: text = 'LODSW'; break;
+      case 0xae: text = 'SCASB'; break;
+      case 0xaf: text = 'SCASW'; break;
       case 0xc0: case 0xc2: text = `RET ${imm16()}`; break;
       case 0xc1: case 0xc3: text = 'RET'; break;
       case 0xc4: { const m = modrm(); text = `LES ${REG16_NAMES[m.reg]}, ${rm16(m)}`; break; }
@@ -201,14 +214,14 @@ export function disassemble(read: ByteReader, offset: number, segment = 0): Disa
         text = `${SHIFTS[m.reg]} ${dst}, ${op & 2 ? 'CL' : '1'}`;
         break;
       }
-      case 0xd4: { const b = next(); text = b === 10 ? 'AAM' : `AAM ${hexLiteral(b, 2)}`; break; }
-      case 0xd5: { const b = next(); text = b === 10 ? 'AAD' : `AAD ${hexLiteral(b, 2)}`; break; }
+      case 0xd4: { const b = next(); text = b === 10 ? 'AAM' : `AAM ${byteLiteral(b)}`; break; }
+      case 0xd5: { const b = next(); text = b === 10 ? 'AAD' : `AAD ${byteLiteral(b)}`; break; }
       case 0xd6: text = 'SALC'; break;
       case 0xd7: text = 'XLATB'; break;
       case 0xe0: case 0xe1: case 0xe2: case 0xe3: {
         const t = rel8();
         target = { offset: t };
-        text = `${['LOOPNE', 'LOOPE', 'LOOP', 'JCXZ'][op - 0xe0]} ${hexLiteral(t, 4)}`;
+        text = `${['LOOPNE', 'LOOPE', 'LOOP', 'JCXZ'][op - 0xe0]} ${byteLiteral(t)}`;
         break;
       }
       case 0xe4: text = `IN AL, ${imm8()}`; break;
@@ -224,7 +237,7 @@ export function disassemble(read: ByteReader, offset: number, segment = 0): Disa
         text = `JMP ${hex(seg, 4)}:${hex(off, 4)}`;
         break;
       }
-      case 0xeb: { const t = rel8(); target = { offset: t }; text = `JMP ${hexLiteral(t, 4)}`; break; }
+      case 0xeb: { const t = rel8(); target = { offset: t }; text = `JMP ${byteLiteral(t)}`; break; }
       case 0xec: text = 'IN AL, DX'; break;
       case 0xed: text = 'IN AX, DX'; break;
       case 0xee: text = 'OUT DX, AL'; break;
@@ -275,5 +288,5 @@ export function disassemble(read: ByteReader, offset: number, segment = 0): Disa
         text = `DB ${hexLiteral(op, 2)}`;
     }
   }
-  return { length: pos - offset, text: lock + rep + text, target };
+  return { length: pos - offset, text, target, ...(memRef ? { mem: memRef } : {}) };
 }

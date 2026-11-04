@@ -15,6 +15,22 @@
   one in -128..255 (`INC [BX]`, `MOV [DI], 0`), a word otherwise (`MOV [BX], 300`).
 - **Doubled quotes** inside a string stay two quote characters, as in EMU8086 (`DB 'it''s'` is `69 74 27 27 73`).
 - **Listing window** shows all the bytes of a macro call line, not only its first instruction.
+- **Single-stepping matches EMU8086 4.08 step for step.** 12 programs were recorded with EMU8086's debug.exe
+  emulation (`r` and `t`), about 830 steps in total: arithmetic, addressing modes, REP strings, flag behaviour,
+  INT 21h output, macros and emu8086.inc. Each one now replays with the same registers, flags and next
+  instruction at every step.
+  - A prefix (`REPE`, `REPNE`, `ES:`, `CS:`, `LOCK`) is its own step and line, and highlights one byte. A REP
+    string instruction does one iteration per step and returns to the prefix. Step over (Shift+F8) on a REP
+    prefix runs every iteration.
+  - Flags the 8086 leaves undefined follow EMU8086: MUL/IMUL keep SF/ZF/AF/PF; logic and shift instructions
+    keep AF; right shifts and rotates by more than one bit keep OF; BCD adjustments clear OF; AAA/AAS take SF/ZF
+    from AH. EMU8086's DAS (9Bh with CF=0 gives 95h) and its SAHF (which also clears OF, DF and IF) are
+    reproduced too.
+  - The disassembly uses EMU8086's text: `JZ`, `JNB`, `JNBE`, `JPE`, `JNL`, `JNLE`…; byte values and short
+    jumps as `02h`, `035h`, `0115h`; displacements after the brackets (`[BX] + 05h`, `[BP] - 02h`); and the raw
+    byte of a sign-extended immediate (`ADD BX, 0FFh`).
+  - The debug log adds EMU8086's memory value note (`MOV AL, [BX]		DS:0200=00h`), shows all four bytes of a
+    ROM trap, and leaves a blank line after `r` and `t`. `IN` from a port without a device reads 0.
 - Tests compare 13 programs byte for byte with executables produced by EMU8086 4.08 and check 7 of its macro error
   cases on the same lines.
 
