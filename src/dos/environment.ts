@@ -120,7 +120,7 @@ export class DosEnvironment {
     w16(KB_HEAD, KB_START);
     w16(KB_TAIL, KB_START);
     this.mem.journal = null;
-    this.screen.setMode(3);
+    this.screen.setMode(3); // EMU8086 4.08 starts with NUL characters (00 07) in video memory
   }
 
   /** Builds the PSP and stack for a .COM image and sets the CPU registers. */

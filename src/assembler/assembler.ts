@@ -119,7 +119,8 @@ export const DIRECTIVES = new Set<string>([
   'SHORT', 'NEAR', 'FAR', '.RADIX', 'INCLUDE', 'MACRO', 'ENDM', 'LOCAL', ...IGNORED_DIRECTIVES, ...Object.keys(UNSUPPORTED_DIRECTIVES),
 ]);
 
-const RESERVED = new Set<string>([...MNEMONICS, ...DIRECTIVES, 'MOD', 'SHL', 'SHR', 'AND', 'OR', 'XOR', 'NOT', 'HIGH', 'LOW', 'LENGTH', 'SIZE', 'TYPE', 'SEG']);
+// HIGH, LOW, LENGTH, SIZE, TYPE and MOD are not EMU8086 operators, so they are free names (`size = ($ - x1) / 2`)
+const RESERVED = new Set<string>([...MNEMONICS, ...DIRECTIVES, 'SEG']);
 
 export interface AssembleOptions {
   /** Upper bound on address-assignment passes. */
@@ -355,7 +356,9 @@ class Assembler {
       const st = this.newStmt(line, name.col, '', endCol, procFar);
       st.label = { name: name.upper, col: name.col };
       const nextIsData = toks[2] && DATA_DIRECTIVES[toks[2].upper] !== undefined;
-      this.defineSymbol(name, line, nextIsData ? 'var' : 'label', nextIsData ? DATA_DIRECTIVES[toks[2].upper] : 0);
+      // `msg: db "Hello"` makes msg a label, not a variable: EMU8086's HelloWorld example loads the offset with
+      // `mov dx, msg` (BA 02 01)
+      this.defineSymbol(name, line, 'label', 0);
       k = 2;
       if (k >= toks.length) {
         this.stmts.push(st);
@@ -441,6 +444,11 @@ class Assembler {
     }
     if (IGNORED_DIRECTIVES.has(op)) return false;
     if (UNSUPPORTED_DIRECTIVES[op]) throw new AsmError(UNSUPPORTED_DIRECTIVES[op], line, opTok.col, opTok.text.length);
+    if (op === 'ENDP' && rest.length === 0) {
+      // EMU8086 accepts a bare ENDP: it closes the innermost PROC (its examples use it, nested PROCs included)
+      if (!procStack.pop()) throw new AsmError('ENDP without matching PROC', line, opTok.col, opTok.text.length);
+      return false;
+    }
     if (op === 'PROC' || op === 'ENDP' || op === 'EQU') throw new AsmError(`${op} needs a name before it (e.g. "myproc ${op}")`, line, opTok.col, opTok.text.length);
 
     const isKnown = MNEMONICS.has(op) || op === 'ORG' || DATA_DIRECTIVES[op] !== undefined;
@@ -535,6 +543,9 @@ class Assembler {
       case 'here': return { v: this.here, known: true, reloc: true };
       case 'undef': return { v: 0, known: true, reloc: false };
       case 'sym': {
+        // EMU8086 reads `$3` as `$ + 3` (its tutorial: "jmp $3+2 ; skip over next 3 bytes + itself")
+        const dollar = /^\$(\d+)$/.exec(e.name);
+        if (dollar && !this.syms.has(e.name)) return { v: this.here + parseInt(dollar[1], 10), known: true, reloc: false };
         const s = this.syms.get(e.name);
         if (!s) {
           if (this.final) {
@@ -553,26 +564,15 @@ class Assembler {
       case 'seg': throw new AsmError('segment override is not allowed in this expression', line, e.col);
       case 'dup': throw new AsmError('DUP is only allowed in DB/DW/DD', line, e.col);
       case 'un': {
-        if (e.op === 'LENGTH' || e.op === 'SIZE' || e.op === 'TYPE') {
-          if (e.e.k !== 'sym') throw new AsmError(`${e.op} needs a variable name`, line, e.col);
-          const s = this.syms.get(e.e.name);
-          if (!s) {
-            if (this.final) throw new AsmError(`undefined symbol '${e.e.name}'`, line, e.e.col, e.e.len);
-            return { v: 0, known: false, reloc: false };
-          }
-          const v = e.op === 'LENGTH' ? s.count : e.op === 'SIZE' ? s.count * s.size : s.size;
-          return { v, known: true, reloc: false };
-        }
-        if (e.op === 'SEG') throw new AsmError('SEG is not supported (COM programs have a single segment; use CS)', line, e.col, 3);
-        const a = this.evaluate(e.e, line);
+        if (e.op === 'SEG') throw new AsmError('SEG is supported only as MOV reg16, SEG name (COM programs have a single segment; use CS)', line, e.col, 3);
+        // OFFSET b1[2] is the address of b1 + 2, as in EMU8086
+        const a = this.evaluate(e.op === 'OFFSET' ? stripBrackets(e.e) : e.e, line);
         let v = a.v;
         switch (e.op) {
           case '-': v = -a.v; break;
           case '+': break;
-          case 'NOT': v = ~a.v; break;
+          case 'NOT': v = ~a.v; break; // the ~ operator
           case 'OFFSET': break;
-          case 'HIGH': v = (a.v >> 8) & 0xff; break;
-          case 'LOW': v = a.v & 0xff; break;
         }
         return { v, known: a.known, reloc: e.op === 'OFFSET' ? a.reloc : a.reloc && (e.op === '+') };
       }
@@ -585,17 +585,13 @@ class Assembler {
           case '-': v = a.v - b.v; break;
           case '*': v = a.v * b.v; break;
           case '/':
-          case 'MOD':
             if (b.known && b.v === 0) {
               if (this.final) throw new AsmError('division by zero in expression', line, e.col);
               v = 0;
-            } else v = e.op === '/' ? Math.trunc(a.v / (b.v || 1)) : a.v % (b.v || 1);
+            } else v = Math.trunc(a.v / (b.v || 1));
             break;
-          case 'SHL': v = a.v << b.v; break;
-          case 'SHR': v = a.v >>> b.v; break;
-          case 'AND': v = a.v & b.v; break;
-          case 'OR': v = a.v | b.v; break;
-          case 'XOR': v = a.v ^ b.v; break;
+          case 'AND': v = a.v & b.v; break; // the & operator
+          case 'OR': v = a.v | b.v; break; // the | operator
           default: throw new AsmError(`unsupported operator ${e.op}`, line, e.col);
         }
         // label - label is an absolute distance; label + n stays relocatable
@@ -822,6 +818,9 @@ class Assembler {
 
   private memSize(st: Stmt, m: MemOperand, other?: Operand): 1 | 2 {
     const otherSize = other && other.kind === 'reg' ? other.reg.size : 0;
+    // A DD variable with a 16-bit register is a word access: EMU8086's own example loads DX:AX with
+    // `mov ax, binn` / `mov dx, [binn+2]`
+    if (m.size === 4 && !m.explicitSize && otherSize === 2) return 2;
     if (m.size === 4) throw new AsmError('DWORD operands are only valid for far JMP/CALL', st.line, m.col);
     if (m.size && otherSize && m.size !== otherSize) {
       const which = m.explicitSize ? 'the PTR size' : 'the variable size';
@@ -875,6 +874,12 @@ class Assembler {
         const dupIdx = g.findIndex((t) => t.upper === 'DUP');
         if (dupIdx >= 0) {
           const countExpr = new ExprParser(g.slice(0, dupIdx), st.line, st.endCol).parse();
+          if (depth > 0) {
+            // EMU8086 4.08 does not nest DUP: an inner `n DUP(...)` stores just n
+            // (2 DUP(1, 2 DUP(7)) is 01 02 01 02)
+            emitValue(countExpr, g);
+            continue;
+          }
           const n = this.val(countExpr, st.line);
           if (!n.known) throw new AsmError('DUP count must be a known constant', st.line, g[0].col);
           if (n.v < 0 || n.v > 0x10000) throw new AsmError('DUP count out of range', st.line, g[0].col);
@@ -973,6 +978,9 @@ class Assembler {
         if (o.kind === 'imm' && push) {
           this.warn('PUSH immediate is an 80186 instruction (accepted for EMU8086 compatibility)', L, st.col, 4);
           const v = this.imm(st, o, 2);
+          // EMU8086 uses the short sign-extended form (6A ib) when the value fits: PUSH 3 is 6A 03
+          const sv = this.val(o.expr, L);
+          if (sv.known && !sv.reloc && sv.v >= -128 && sv.v <= 127) return [0x6a, v & 0xff];
           return [0x68, v & 0xff, v >> 8];
         }
         throw new AsmError(`${op}: register or memory operand expected`, L, o.col);
@@ -1119,6 +1127,10 @@ class Assembler {
     }
     if (a.kind === 'reg') {
       const size = a.reg.size;
+      if (b.kind === 'imm' && b.expr.k === 'un' && b.expr.op === 'SEG' && size === 2) {
+        // COM programs have one segment: EMU8086 assembles MOV AX, SEG var as MOV AX, CS (8C C8)
+        return [0x8c, 0xc0 | (1 << 3) | a.reg.code];
+      }
       if (b.kind === 'imm') {
         return size === 1 ? [0xb0 + a.reg.code, this.imm(st, b, 1)] : [0xb8 + a.reg.code, ...le16(this.imm(st, b, 2))];
       }
@@ -1127,7 +1139,8 @@ class Assembler {
         return [size === 1 ? 0x8a : 0x8b, ...this.modrm(st, a.reg.code, b)];
       }
       this.memSize(st, b, a);
-      if (a.reg.code === 0 && b.base < 0 && b.index < 0) {
+      // EMU8086 drops the short accumulator form when the size is written out: MOV AL, BYTE PTR w1 is 8A 06
+      if (a.reg.code === 0 && b.base < 0 && b.index < 0 && !b.explicitSize) {
         const d = b.disp ? this.val(b.disp, L).v & 0xffff : 0;
         return [...this.segPrefix(b), size === 1 ? 0xa0 : 0xa1, ...le16(d)];
       }
@@ -1137,7 +1150,7 @@ class Assembler {
     if (b.kind === 'mem') throw new AsmError('MOV cannot copy memory to memory; use a register in between', L, b.col);
     if (b.kind === 'reg') {
       const size = this.memSize(st, a, b);
-      if (b.reg.code === 0 && a.base < 0 && a.index < 0) {
+      if (b.reg.code === 0 && a.base < 0 && a.index < 0 && !a.explicitSize) {
         const d = a.disp ? this.val(a.disp, L).v & 0xffff : 0;
         return [...this.segPrefix(a), size === 1 ? 0xa2 : 0xa3, ...le16(d)];
       }
@@ -1306,6 +1319,16 @@ class Assembler {
 
 function le16(v: number): number[] {
   return [v & 0xff, (v >> 8) & 0xff];
+}
+
+/** Reads `[x]` as `x` (for OFFSET var[2]); registers inside still fail when evaluated. */
+function stripBrackets(e: Expr): Expr {
+  switch (e.k) {
+    case 'mem': return stripBrackets(e.e);
+    case 'un': return { ...e, e: stripBrackets(e.e) };
+    case 'bin': return { ...e, l: stripBrackets(e.l), r: stripBrackets(e.r) };
+    default: return e;
+  }
 }
 
 function containsRegOrMem(e: Expr): boolean {

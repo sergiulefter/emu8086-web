@@ -167,7 +167,7 @@ test('T010: step back restores B800 bytes and registers; forward reproduces them
   await step(page, 6);
   expect(await ram(page, 0xb8000, 2)).toEqual([0x48, 0x0f]);
   await back.click();
-  expect(await ram(page, 0xb8000, 2)).toEqual([0x20, 0x07]);
+  expect(await ram(page, 0xb8000, 2)).toEqual([0x00, 0x07]); // EMU8086 4.08's empty screen: 00 07
   expect(await reg(page, 'IP')).toBe('010C');
   expect(await litPixels(page, 0, 0)).toBe(0);
   await page.keyboard.press('F8');

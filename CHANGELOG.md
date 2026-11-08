@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.3.1 — 2026-11-08
+
+More EMU8086 4.08 examples from its help and tutorials, plus own test programs, were compiled and single-stepped
+in the real EMU8086 and compared step by step. These differences were found and fixed:
+
+- **Bare `ENDP`** (without the procedure name) closes the innermost PROC, as EMU8086 accepts it. Several of its
+  examples use it.
+- **`PUSH imm`** uses the short form `6A ib` when the value fits in -128..127, and the disassembly shows it as
+  `PUSH 03h`.
+- **Indirect `JMP`/`CALL`** through memory are disassembled with the `w.` prefix (`CALL w.[BX]`), as in EMU8086.
+- **`b.var` / `w.var`** written without a space (`mov b.temp, al`) are accepted.
+- **`$3`** is read as `$+3`, as in EMU8086's tutorial (`jmp $3+2`).
+- **HLT** leaves IP on the HLT instruction, as in EMU8086.
+- **Video memory starts as `00 07`** (NUL characters) instead of spaces, and INT 10h AH=00h clears to `00 07`
+  too, as in EMU8086 4.08.
+- **`msg: db …`** (a colon label before data) is a label, not a variable: `mov dx, msg` loads its offset, as in
+  EMU8086's HelloWorld example.
+- **A `DD` variable with a 16-bit register** is a word access (`mov ax, binn`, `mov dx, [binn+2]`), as in the
+  double_word example.
+- **`OFFSET var[2]`** is the address of var + 2 (the print_char_by_char example).
+- **`MOV reg16, SEG var`** assembles as `MOV reg16, CS`.
+- **`BYTE PTR` / `WORD PTR` turn off the short accumulator form** (`MOV AL, BYTE PTR w1` is `8A 06 …`).
+- **An operand that starts with `(`** is a memory reference (`MOV AX, (2+3)*4` = `A1 14 00`); `-(5)` stays a number.
+- **Nested DUP** behaves as in EMU8086: the inner `n DUP(…)` stores just `n`.
+- **`HIGH`, `LOW`, `LENGTH`, `SIZE`, `TYPE`, `MOD`, `SHL`, `SHR`, `AND`, `OR`, `XOR` and `NOT` are no longer
+  expression operators.** EMU8086 4.08 rejects them with "wrong parameters", and so does emu8086-web now. The
+  words are free for your own names, so the cmpsb/cmpsw examples (`size = ($ - x1) / 2`) assemble.
+- Tests compare 6 more programs byte for byte with EMU8086 4.08 executables.
+
 ## 1.3.0 — 2026-11-04
 
 - **Macros:** `name MACRO p1, p2 … ENDM` and `LOCAL` work as in EMU8086 4.08. Macros must be defined before use.

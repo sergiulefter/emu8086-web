@@ -119,10 +119,40 @@ describe('data and variables', () => {
     expect(errorsOf('org 100h\nmov al, w\nret\nw dw 7')[0].message).toMatch(/operands do not match/);
   });
 
-  it('OFFSET, LEA, indexed variables, LENGTH/SIZE', () => {
-    expect(hexOf('org 100h\nmov dx, offset msg\nlea si, msg\nmov al, msg[bx]\nmov al, [msg+1]\nmov cx, length msg\nret\nmsg db 1,2,3')).toBe(
-      'ba1101' + 'be1101' + '8a871101' + 'a01201' + 'b90300' + 'c3' + '010203',
+  it('OFFSET, LEA, indexed variables', () => {
+    expect(hexOf('org 100h\nmov dx, offset msg\nlea si, msg\nmov al, msg[bx]\nmov al, [msg+1]\nmov bx, offset msg[2]\nret\nmsg db 1,2,3')).toBe(
+      'ba1101' + 'be1101' + '8a871101' + 'a01201' + 'bb1301' + 'c3' + '010203',
     );
+  });
+
+  it('MASM operators that EMU8086 4.08 lacks are "wrong parameters"; their names are free', () => {
+    // each of these fails in EMU8086 4.08 with "(2) wrong parameters: ..."
+    for (const [line, op] of [
+      ['MOV BL, HIGH 1234h', 'HIGH'], ['MOV BL, LOW 1234h', 'LOW'], ['MOV CX, TYPE w1', 'TYPE'],
+      ['MOV CX, LENGTH w1', 'LENGTH'], ['MOV CX, SIZE w1', 'SIZE'], ['MOV BP, (10h SHL 2) OR 1', 'SHL'],
+      ['MOV AX, 0F0Fh AND 00FFh', 'AND'], ['MOV AX, 17 MOD 5', 'MOD'], ['MOV AX, NOT 1', 'NOT'], ['MOV AX, 100h SHR 4', 'SHR'],
+    ]) {
+      const e = errorsOf(`org 100h\n${line}\nret\nw1 dw 1, 2`);
+      expect(e[0].line).toBe(2);
+      expect(e[0].message).toBe(`wrong parameters: EMU8086 has no ${op} operator`);
+    }
+    // EMU8086's cmpsb/cmpsw examples: `size = ($ - x1) / 2` ... `mov cx, size`
+    expect(hexOf("org 100h\nmov cx, size\nret\nx1:\ns1 db 'ab'\ns2 db 'ab'\nsize = ($ - x1) / 2")).toBe('b90200c3' + '61626162');
+  });
+
+  it('a colon label before DB is a label: mov dx, msg loads its offset (EMU8086 HelloWorld example)', () => {
+    // hi.com_ from EMU8086 4.08: EB 10 "Hello, World!" 0D 0A 24 BA 02 01 ...
+    expect(hexOf('org 100h\njmp start\nmsg: db "Hi", 24h\nstart: mov dx, msg\nret')).toBe('eb03' + '486924' + 'ba0201' + 'c3');
+  });
+
+  it('a DD variable with a 16-bit register is a word access (EMU8086 double_word example)', () => {
+    // EMU8086 4.08: `mov ax, binn` = A1 0E 01, `mov dx, [binn+2]` = 8B 16 10 01
+    expect(hexOf('org 100h\nmov ax, d\nmov dx, [d+2]\nret\nd dd 12345678h')).toBe('a10801' + '8b160a01' + 'c3' + '78563412');
+    expect(errorsOf('org 100h\nmov al, d\nret\nd dd 1')[0].message).toMatch(/DWORD/);
+  });
+
+  it('BYTE PTR / WORD PTR turns off the short accumulator form', () => {
+    expect(hexOf('org 100h\nmov al, byte ptr w\nmov word ptr w, ax\nret\nw dw 1')).toBe('8a060901' + '89060901' + 'c3' + '0100');
   });
 
   it('LEA of a direct address is MOV reg, imm16 (EMU8086 4.08 listing)', () => {

@@ -126,7 +126,7 @@ describe('T003 step synchronization', () => {
       }],
     ];
     for (const [nextLine, check] of expectations) {
-      if (nextLine < 12) expect(m.mem.read8(0xb8000)).toBe(0x20);
+      if (nextLine < 12) expect(m.mem.read8(0xb8000)).toBe(0x00); // EMU8086 4.08 starts with 00 07 cells
       m.step();
       check();
       // highlight moves to the next executable line; org (1) and the comment (6) are never current

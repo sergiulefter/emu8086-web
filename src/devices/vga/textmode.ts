@@ -122,8 +122,9 @@ export class TextScreen {
   }
 
   // ------------------------------------------------------- BIOS primitives
-  /** Initialises the BIOS video state for an 80x25 (or 40x25) colour text mode and clears all pages. */
-  setMode(mode: number): void {
+  /** Initialises the BIOS video state for an 80x25 (or 40x25) colour text mode and clears all pages
+   *  (EMU8086 4.08 clears to NUL characters, 00 07, at startup and on INT 10h AH=00h). */
+  setMode(mode: number, fill = 0x00): void {
     const cols = mode <= 1 ? 40 : 80;
     this.mem.write8(BDA + BDA_VIDEO_MODE, mode);
     this.mem.write8(BDA + BDA_COLUMNS, cols);
@@ -139,7 +140,7 @@ export class TextScreen {
     this.mem.write8(BDA + BDA_CURSOR_SHAPE + 1, 0x06);
     for (let p = 0; p < 8; p++) this.setCursor(0, 0, p);
     for (let a = VIDEO_BASE; a < VIDEO_BASE + 8 * PAGE_SIZE; a += 2) {
-      this.mem.write8(a, 0x20);
+      this.mem.write8(a, fill);
       this.mem.write8(a + 1, 0x07);
     }
   }

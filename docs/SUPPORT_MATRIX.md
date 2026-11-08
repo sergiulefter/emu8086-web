@@ -23,27 +23,33 @@ EMU8086 compatibility (ADR-001).
 `[BX]`, `[BP]`, `[SI]`, `[DI]`, `[BX+SI]`, `[BX+DI]`, `[BP+SI]`, `[BP+DI]`, each with an optional 8- or 16-bit
 displacement; direct `[1234h]`; variables (`var`, `var[BX]`, `[var+2]`, `var+2[SI]`); segment overrides
 (`ES:[DI]`, `[ES:DI]`, `CS:var`). `BP`-based addresses default to SS. Size comes from the register,
-`BYTE/WORD/DWORD PTR`, `b.`/`w.`, or the variable type. Without any of these, the size follows EMU8086 4.08: a byte
+`BYTE/WORD/DWORD PTR`, `b.`/`w.`, or the variable type (a `DD` variable used with a 16-bit register is a word access,
+as in EMU8086's double_word example). An explicit size turns off the short accumulator form, as in EMU8086
+(`MOV AL, BYTE PTR w1` is `8A 06 …`, not `A0 …`). An operand that starts with `(` is a memory reference, as in
+EMU8086 (`MOV AX, (2+3)*4` reads the word at offset 20). Without any of these, the size follows EMU8086 4.08: a byte
 when the immediate fits in -128..255 or there is no immediate (`MOV [BX], 5`, `INC [BX]`), a word otherwise
 (`MOV [BX], 300`).
 
 ## Directives and syntax
 | Item | Status |
 |---|---|
-| `ORG`, `DB`, `DW`, `DD`, `n DUP(…)` (nested), `?`, strings `'…'` / `"…"` (a doubled quote stays two quote characters, as in EMU8086) | supported |
+| `ORG`, `DB`, `DW`, `DD`, `n DUP(…)`, `?`, strings `'…'` / `"…"` (a doubled quote stays two quote characters, as in EMU8086) | supported. As in EMU8086 4.08, DUP does not nest: an inner `n DUP(…)` stores just `n` (`2 DUP(1, 2 DUP(7))` is `01 02 01 02`) |
+| `name: DB …` | a label, not a variable, as in EMU8086 (`mov dx, msg` loads the offset of msg) |
 | `name MACRO p1, p2 … ENDM` (or `name ENDM`), `LOCAL` | supported as in EMU8086 4.08: defined before use; arguments split by commas or blanks, quotes keep a string whole; textual, case-insensitive substitution (not in the instruction name or inside quotes); missing arguments are empty, extra ones ignored; `LOCAL x` becomes `X_LOC<n>TMP`; errors point at the call line |
 | `INCLUDE 'emu8086.inc'` (quoted or bare name) | supported: EMU8086 4.08's emu8086.inc is bundled unchanged (PRINT, PRINTN, PUTC, GOTOXY, CURSOROFF, CURSORON and the DEFINE_… procedures). Other file names are reported as not found. |
 | `EQU` (numeric, text, strings; an EQU of a variable acts as that variable), `=` (redefinable) | supported |
 | `name PROC [NEAR\|FAR]` / `name ENDP` (names must match; RET in a FAR PROC → RETF; `CALL far_proc` → `PUSH CS` + `CALL`), `END [label]` (also the BIN entry point) | supported |
 | `NAME`, `TITLE`, `PAGE`, `ASSUME`, `.8086`, `.186`, `SUBTTL` | accepted and ignored |
 | `COMMENT <delim> … <delim>` | supported |
-| `OFFSET`, `HIGH`, `LOW`, `LENGTH`, `SIZE`, `TYPE`, `SHORT`, `NEAR PTR`, `FAR PTR`, `$` | supported |
-| operators `+ - * / MOD SHL SHR AND OR XOR NOT`, parentheses | supported |
+| `OFFSET` (also `OFFSET var[2]`), `SHORT`, `NEAR PTR`, `FAR PTR`, `$` (`$3` means `$+3`, as in EMU8086's tutorial) | supported |
+| `SEG name` | only as `MOV reg16, SEG name`, assembled as `MOV reg16, CS` like EMU8086 (COM programs have one segment) |
+| operators `+ - * /`, parentheses | supported |
+| `HIGH`, `LOW`, `LENGTH`, `SIZE`, `TYPE`, `MOD`, `SHL`, `SHR`, `AND`, `OR`, `XOR`, `NOT` as expression operators | "wrong parameters", as in EMU8086 4.08, which does not have them. These words are free for your own names (EMU8086's examples use `size = ($ - x1) / 2`). |
 | numbers: `162`, `162d`, `0B800h`, `0x1F`, `0000_1111b`, `17o`, `17q`, `'A'`, `'AB'` | supported (`q` is an extra) |
 | `.RADIX base` | supported: numeric base 2–16, decimal selectors; explicit suffixes and `0x` override the default |
 | `#make_com#`, `#make_bin#`, `#make_boot#`, `#LOAD_SEGMENT=…#`, `#LOAD_OFFSET=…#`, `#CS=…#` … `#SP=…#`, `#AX=…#`, `#AL=…#` … | supported |
 | `#MEM=address,bytes-address,bytes#` | supported for BIN/boot: physical or segment:offset addresses, hexadecimal byte strings; reapplied on reset/reload |
-| `#make_exe#`, `.MODEL`, `.DATA`, `.CODE`, `.STACK`, `SEGMENT/ENDS`, `LABEL`, `EXTRN/PUBLIC`, `DQ`, `DT`, `SEG` | explicit "not supported" diagnostic |
+| `#make_exe#`, `.MODEL`, `.DATA`, `.CODE`, `.STACK`, `SEGMENT/ENDS`, `LABEL`, `EXTRN/PUBLIC`, `DQ`, `DT` | explicit "not supported" diagnostic |
 | `#fasm#`, `#masm#`, `#start=…#` | warning, ignored |
 
 `.RADIX` starts at decimal for each assembly and affects subsequent unsuffixed literals, including data,

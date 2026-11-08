@@ -859,7 +859,10 @@ export class CPU {
       case 0xe9: { const d = this.fetch16(); this.ip = (this.ip + d) & 0xffff; break; }
       case 0xea: { const off = this.fetch16(); s[CS] = this.fetch16(); this.ip = off; break; }
       case 0xeb: this.jumpRel8(true); break;
-      case 0xf4: this.halted = true; break; // HLT
+      case 0xf4: // HLT (EMU8086 leaves IP on the HLT instruction)
+        this.halted = true;
+        if (this.emu8086) this.ip = this.startIp;
+        break;
       case 0xf5: this.flags ^= CF; break;
       case 0xf6: case 0xf7: this.group3(op === 0xf7); break;
       case 0xf8: this.flags &= ~CF; break;

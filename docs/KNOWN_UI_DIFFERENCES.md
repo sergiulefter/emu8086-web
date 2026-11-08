@@ -65,8 +65,8 @@ explicit message. Nothing is faked.
   exported, so open the original `.asm` source to retain its memory presets. COM use is rejected explicitly.
 - `CX` holds the program size when a COM program starts. This follows 4.08 screenshots; there is no explicit
   documentation for it.
-- At startup, video memory holds spaces with attribute `07h` (BIOS mode-set behaviour). Untouched cells read
-  `20 07`.
+- At startup and after INT 10h AH=00h (set video mode), video memory holds NUL characters with attribute `07h`, as in
+  EMU8086 4.08: untouched cells read `00 07`.
 - Attribute bit 7 means a bright background. Blinking is not emulated, as in EMU8086.
 - Step Back does not undo external events: keys typed, *clear screen*, or edits made in the register, memory,
   flags and variables windows. History holds 50 000 steps.

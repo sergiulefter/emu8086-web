@@ -120,8 +120,7 @@ export function disassemble(read: ByteReader, offset: number, segment = 0): Disa
   } else if (op === 0x68) {
     text = `PUSH ${imm16()}`;
   } else if (op === 0x6a) {
-    const i = next();
-    text = `PUSH ${hexLiteral(i & 0x80 ? 0xff00 | i : i, 4)}`;
+    text = `PUSH ${imm8()}`; // EMU8086 shows the byte as written: PUSH 03h
   } else if (op >= 0x60 && op <= 0x7f) {
     const t = rel8();
     target = { offset: t };
@@ -276,9 +275,9 @@ export function disassemble(read: ByteReader, offset: number, segment = 0): Disa
         switch (m.reg) {
           case 0: text = `INC ${rm16(m, true)}`; break;
           case 1: text = `DEC ${rm16(m, true)}`; break;
-          case 2: text = `CALL ${rm16(m)}`; break;
+          case 2: text = `CALL ${rm16(m, true)}`; break; // EMU8086: JMP w.[SI] + 0013Bh
           case 3: text = `CALL FAR ${rm16(m)}`; break;
-          case 4: text = `JMP ${rm16(m)}`; break;
+          case 4: text = `JMP ${rm16(m, true)}`; break;
           case 5: text = `JMP FAR ${rm16(m)}`; break;
           default: text = `PUSH ${rm16(m, true)}`; break;
         }

@@ -91,8 +91,10 @@ describe('code review regressions', () => {
     expect(r.diagnostics[0].message).toMatch(/does not fit in 16 bits/);
   });
 
-  it('10: NOT has lower precedence than + and -', () => {
-    expect(hex('org 100h\nmov ax, NOT 1 + 1')).toBe('b8fdff');
+  it('10: NOT is not an EMU8086 operator (wrong parameters, as in EMU8086 4.08)', () => {
+    const r = assemble('org 100h\nmov ax, NOT 1 + 1');
+    expect(r.ok).toBe(false);
+    expect(r.diagnostics[0].message).toMatch(/wrong parameters/);
   });
 
   it('11: text EQU of a long string', () => {
@@ -101,10 +103,12 @@ describe('code review regressions', () => {
 
   it('12: oversized DUP fails fast with a clear error', () => {
     const t0 = performance.now();
-    const r = assemble('org 100h\ndb 65535 dup(65535 dup(0))');
+    const r = assemble('org 100h\ndb 65535 dup(1, 2)');
     expect(r.ok).toBe(false);
     expect(r.diagnostics[0].message).toMatch(/64 KB/);
-    expect(assemble('db 1000 dup(1000 dup(1000 dup(0)))').diagnostics[0].message).toMatch(/64 KB/);
+    expect(assemble('dw 40000 dup(0)').diagnostics[0].message).toMatch(/64 KB/);
+    // EMU8086 does not nest DUP: the inner one stores its count (2 DUP(1, 2 DUP(7)) = 01 02 01 02)
+    expect(hex('db 2 dup(1, 2 dup(7))')).toBe('01020102');
     expect(performance.now() - t0).toBeLessThan(3000);
   });
 });

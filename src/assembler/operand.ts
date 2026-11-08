@@ -43,8 +43,13 @@ export type Expr =
   | { k: 'dup'; count: Expr; items: Expr[]; col: number }
   | { k: 'undef'; col: number };
 
-const UNARY_KEYWORDS = new Set(['OFFSET', 'HIGH', 'LOW', 'LENGTH', 'SIZE', 'TYPE', 'SEG']);
-const MUL_OPS = new Set(['*', '/', 'MOD', 'SHL', 'SHR']);
+const UNARY_KEYWORDS = new Set(['OFFSET', 'SEG']);
+const MUL_OPS = new Set(['*', '/']);
+/**
+ * MASM operators that EMU8086 4.08 does not have: it rejects `HIGH 1234h`, `LENGTH msg`, `17 MOD 5`, `NOT 1`
+ * or `x SHL 2` with "wrong parameters". They are plain names here (its own examples use `size` as a constant).
+ */
+export const MISSING_OPERATORS = new Set(['HIGH', 'LOW', 'LENGTH', 'SIZE', 'TYPE', 'NOT', 'SHL', 'SHR', 'AND', 'OR', 'XOR', 'MOD']);
 
 export class ExprParser {
   pos = 0;
@@ -63,9 +68,19 @@ export class ExprParser {
     throw new AsmError(msg, this.line, t ? t.col : this.endCol, t ? t.text.length : 1);
   }
 
+  /** Error for a token left over after an expression; names the missing operator when one caused it. */
+  unexpected(msg: string): never {
+    const t = this.peek();
+    const prev = this.toks[this.pos - 1];
+    const op = t && t.kind === 'ident' && MISSING_OPERATORS.has(t.upper) ? t
+      : prev && prev.kind === 'ident' && MISSING_OPERATORS.has(prev.upper) ? prev : null;
+    if (op) this.error(`wrong parameters: EMU8086 has no ${op.upper} operator`, op);
+    this.error(msg);
+  }
+
   expectPunct(p: string): Token {
     const t = this.peek();
-    if (!t || t.kind !== 'punct' || t.text !== p) this.error(`expected '${p}'`);
+    if (!t || t.kind !== 'punct' || t.text !== p) this.unexpected(`expected '${p}'`);
     this.pos++;
     return t;
   }
@@ -86,33 +101,22 @@ export class ExprParser {
 
   private parseOr(): Expr {
     let l = this.parseAnd();
-    while (this.isWord('OR') || this.isWord('XOR') || this.isPunct('|')) {
+    while (this.isPunct('|')) {
       const t = this.peek()!;
       this.pos++;
-      const op = t.upper === '|' ? 'OR' : t.upper;
-      l = { k: 'bin', op, l, r: this.parseAnd(), col: t.col };
+      l = { k: 'bin', op: 'OR', l, r: this.parseAnd(), col: t.col };
     }
     return l;
   }
 
   private parseAnd(): Expr {
-    let l = this.parseNot();
-    while (this.isWord('AND') || this.isPunct('&')) {
+    let l = this.parseAdd();
+    while (this.isPunct('&')) {
       const t = this.peek()!;
       this.pos++;
-      l = { k: 'bin', op: 'AND', l, r: this.parseNot(), col: t.col };
+      l = { k: 'bin', op: 'AND', l, r: this.parseAdd(), col: t.col };
     }
     return l;
-  }
-
-  /** MASM precedence: NOT binds looser than + and - but tighter than AND. */
-  private parseNot(): Expr {
-    if (this.isWord('NOT')) {
-      const t = this.peek()!;
-      this.pos++;
-      return { k: 'un', op: 'NOT', e: this.parseNot(), col: t.col };
-    }
-    return this.parseAdd();
   }
 
   private parseAdd(): Expr {
@@ -165,7 +169,7 @@ export class ExprParser {
 
   private parsePrimary(): Expr {
     const t = this.peek();
-    if (!t) this.error('expression expected');
+    if (!t) this.unexpected('expression expected');
     if (t.kind === 'num') {
       this.pos++;
       return { k: 'num', v: t.value, col: t.col };
@@ -243,6 +247,15 @@ const PTR_SIZES: Record<string, SizeHint> = { BYTE: 1, WORD: 2, DWORD: 4 };
 
 /** Parses one comma-separated operand. */
 export function parseOperand(toks: Token[], line: number, endCol: number, symbols: SymbolKindLookup): Operand {
+  // `b.temp` / `w.var` (EMU8086 size prefix written on a variable name) lexes as one identifier: split it
+  toks = toks.flatMap((t) => {
+    const m = t.kind === 'ident' ? /^([BW]\.)([A-Z_@?$].*)$/.exec(t.upper) : null;
+    if (!m) return [t];
+    return [
+      { ...t, text: t.text.slice(0, 2), upper: m[1] },
+      { ...t, text: t.text.slice(2), upper: m[2], col: t.col + 2 },
+    ];
+  });
   const p = new ExprParser(toks, line, endCol);
   const col = toks[0]?.col ?? endCol;
   let ptrSize: SizeHint = 0;
@@ -276,16 +289,18 @@ export function parseOperand(toks: Token[], line: number, endCol: number, symbol
     break;
   }
   if (p.atEnd()) p.error('operand expected');
+  // EMU8086 reads an operand that starts with '(' as a memory reference: MOV AX, (2+3)*4 is MOV AX, [20]
+  const parenMem = p.isPunct('(');
   const expr = p.parse();
   // seg:off far pointer literal (JMP 0F000h:0100h)
   if (p.isPunct(':')) {
     p.pos++;
     const off = p.parse();
-    if (!p.atEnd()) p.error(`unexpected '${p.peek()!.text}'`);
+    if (!p.atEnd()) p.unexpected(`unexpected '${p.peek()!.text}'`);
     return { kind: 'far', seg: expr, off, col, distance: 'far' };
   }
-  if (!p.atEnd()) p.error(`unexpected '${p.peek()!.text}' in operand`);
-  const op = classify(expr, col, line, symbols, ptrSize);
+  if (!p.atEnd()) p.unexpected(`unexpected '${p.peek()!.text}' in operand`);
+  const op = classify(parenMem && expr.k !== 'reg' ? { k: 'mem', e: expr, col } : expr, col, line, symbols, ptrSize);
   op.distance = distance;
   op.ptrSize = ptrSize;
   return op;
@@ -299,7 +314,7 @@ function containsMemSyntax(e: Expr, symbols: SymbolKindLookup): { bracket: boole
   let firstSize = 0;
   const walk = (x: Expr, inOffset: boolean, sign: number) => {
     switch (x.k) {
-      case 'mem': res.bracket = true; walk(x.e, inOffset, sign); break;
+      case 'mem': if (!inOffset) res.bracket = true; walk(x.e, inOffset, sign); break;
       case 'reg': res.reg = true; break;
       case 'seg': res.bracket = true; walk(x.e, inOffset, sign); break;
       case 'sym': {
@@ -312,7 +327,7 @@ function containsMemSyntax(e: Expr, symbols: SymbolKindLookup): { bracket: boole
         break;
       }
       case 'un':
-        walk(x.e, inOffset || ['OFFSET', 'LENGTH', 'SIZE', 'TYPE', 'SEG', 'HIGH', 'LOW', 'NOT'].includes(x.op), x.op === '-' ? -sign : sign);
+        walk(x.e, inOffset || ['OFFSET', 'SEG', 'NOT'].includes(x.op), x.op === '-' ? -sign : sign);
         break;
       case 'bin':
         if (x.op === '+' || x.op === '-') {
