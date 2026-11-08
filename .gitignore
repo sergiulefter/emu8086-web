@@ -9,4 +9,6 @@ dist/
 test-results/
 playwright-report/
 *.log
+# debug.exe logs recorded from the real EMU8086 4.08 are test fixtures
+!fixtures/traces/*.log
 .claude/
