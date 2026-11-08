@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.2 — 2026-11-08
+
+- **help → about** links to the project on GitHub (source code, issues and releases). The link opens in a new tab.
+- The EMU8086 4.08 trace logs that the step-by-step tests read are now in the repository, so CI passes again.
+  `*.log` in `.gitignore` had kept them out since 1.3.0.
+
 ## 1.3.1 — 2026-11-08
 
 More EMU8086 4.08 examples from its help and tutorials, plus own test programs, were compiled and single-stepped

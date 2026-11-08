@@ -5,7 +5,7 @@ import { MenuPopup } from '../Menu';
 import { store, useStore, type MessageBox } from '../store';
 import * as A from '../actions';
 import { SCREEN_FONTS } from './ScreenWindow';
-import { APP_VERSION } from '../../version';
+import { APP_VERSION, REPO_URL } from '../../version';
 
 function MsgIcon({ icon }: { icon: MessageBox['icon'] }) {
   if (icon === 'error') return <Icons.bigError />;
@@ -251,6 +251,12 @@ export function AboutDialog() {
           <b style={{ fontSize: 14 }} data-testid="about-version">emu8086-web {APP_VERSION}</b>
           <span>assembler and microprocessor emulator for the browser, modelled on the EMU8086 4.08 workflow used in class.</span>
           <span>Runs entirely in this browser tab: no server, account or network access.</span>
+          <span>
+            Source code, issues and releases:{' '}
+            <a href={REPO_URL} target="_blank" rel="noopener noreferrer" data-testid="about-github">
+              {REPO_URL.replace('https://', '')}
+            </a>
+          </span>
           <span style={{ color: '#555' }}>
             Not affiliated with EMU8086 or its authors; all artwork is original.
             Fonts: The Ultimate Oldschool PC Font Pack by VileR (int10h.org), CC BY-SA 4.0.
