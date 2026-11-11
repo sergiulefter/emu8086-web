@@ -153,6 +153,10 @@ export class DosEnvironment {
     const loadSeg = binf.LOAD_SEGMENT ?? binf.CS ?? BIN_LOAD_SEGMENT;
     const loadOff = binf.LOAD_OFFSET ?? origin;
     this.mem.load(physical(loadSeg, loadOff), image);
+    // The same 20 NOPs and HLT as after a COM image: EMU8086 4.08 adds them after a BIN image too
+    // (`d 0100:0` after loading a 7-byte program without ORG shows 90h up to 001Ah and F4h at 001Bh).
+    const end = loadOff + image.length;
+    this.mem.load(physical(loadSeg, end), [...new Array<number>(COM_TAIL_NOPS).fill(0x90), 0xf4].slice(0, Math.max(0, 0x10000 - end)));
     const c = this.cpu;
     c.reset();
     const cs = binf.CS ?? loadSeg;

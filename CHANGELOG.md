@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.3 — 2026-11-11
+
+- **Programs without `ORG 100h`** (BIN, including `#make_boot#`) are now followed in memory by 20 NOPs and a HLT, as
+  in EMU8086 4.08, just like COM programs. Before, the memory list showed `00 NULL` after the program where EMU8086
+  shows `90 É` rows and an `F4` (a program that runs past its end now halts there too).
+
 ## 1.3.2 — 2026-11-08
 
 - **help → about** links to the project on GitHub (source code, issues and releases). The link opens in a new tab.

@@ -33,6 +33,23 @@ describe('.COM load layout (EMU8086 4.08)', () => {
     expect(bytes(m, 0x11f, 2)).toEqual([0xf4, 0x00]);
   });
 
+  it('a BIN program (no ORG 100h) gets the same NOP and HLT tail', () => {
+    // EMU8086 4.08, `d cs:0 l 60` after loading this source: CS=0100 IP=0000, 90h at 0007-001A, F4h at 001B
+    const m = load('mov ax, 1\nmov bx, 2\nret');
+    expect(m.cpu.sregs[CS]).toBe(0x100);
+    expect(m.cpu.ip).toBe(0);
+    const bin = (offset: number, n: number) => Array.from({ length: n }, (_, i) => m.mem.read8(0x1000 + offset + i));
+    expect(bin(0, 7)).toEqual([0xb8, 0x01, 0x00, 0xbb, 0x02, 0x00, 0xc3]);
+    expect(bin(7, 20)).toEqual(new Array(20).fill(0x90));
+    expect(bin(0x1b, 2)).toEqual([0xf4, 0x00]);
+    // #make_boot# at 0000:7C00 (EMU8086 4.08 `d 0000:7c00 l 30`): B8 01 00 F4, 90h at 7C04-7C17, F4h at 7C18
+    const boot = load('#make_boot#\norg 7c00h\nmov ax, 1\nhlt');
+    const at = (a: number, n: number) => Array.from({ length: n }, (_, i) => boot.mem.read8(a + i));
+    expect(at(0x7c00, 4)).toEqual([0xb8, 0x01, 0x00, 0xf4]);
+    expect(at(0x7c04, 20)).toEqual(new Array(20).fill(0x90));
+    expect(at(0x7c18, 2)).toEqual([0xf4, 0x00]);
+  });
+
   it('DUP data is followed by the NOP tail, not by more zeros', () => {
     const m = load("org 100h\nret\na DB 48h, 65h, 6Ch, 6Ch, 6Fh, 00h\nb DB 'Hello', 0\nx DB 10 DUP(0)\ny DB 5 DUP(1)");
     expect(m.cpu.regs[CX]).toBe(0x1c);
