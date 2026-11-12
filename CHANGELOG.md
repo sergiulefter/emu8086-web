@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.4 — 2026-11-12
+
+- **Getting started guide** at `/guide/` explains how to assemble, run and debug a first program, print text
+  with DOS interrupts, and use the keyboard shortcuts. Assembly examples use the editor's syntax colours.
+  The guide works without JavaScript and is included in the sitemap.
+- **Project information stays visible** below the emulator after it loads, with links to the guide and GitHub.
+  The desktop fits the remaining space so its taskbar stays above the project information.
+- **Documentation has a favicon**, and **help → about** shows a concise GitHub link instead of the full URL.
+- Build checks cover the guide's metadata, structured data, local links and sitemap entry. Browser tests run
+  the guide's examples and check navigation, desktop layout and mobile use without JavaScript.
+
 ## 1.3.3 — 2026-11-11
 
 - **Programs without `ORG 100h`** (BIN, including `#make_boot#`) are now followed in memory by 20 NOPs and a HLT, as
