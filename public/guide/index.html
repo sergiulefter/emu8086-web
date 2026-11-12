@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Getting started with emu8086-web | Online 8086 guide</title>
+    <meta name="description" content="Run your first 8086 assembly program in emu8086-web. Learn to compile, inspect registers, step back, and understand EMU8086 compatibility and limits." />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Sergiu Lefter" />
+    <link rel="canonical" href="https://emu8086.sergiulefter.com/guide/" />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./style.css" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="emu8086-web" />
+    <meta property="og:title" content="Getting started with emu8086-web" />
+    <meta property="og:description" content="A practical guide to your first 8086 program, register inspection, step-by-step debugging and compatibility." />
+    <meta property="og:url" content="https://emu8086.sergiulefter.com/guide/" />
+    <meta property="og:image" content="https://emu8086.sergiulefter.com/og-image.png" />
+    <meta property="og:image:alt" content="The emu8086-web editor, debugger registers and text-mode screen" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "Getting started with emu8086-web",
+        "description": "Run your first 8086 assembly program, inspect registers and debug step by step in emu8086-web.",
+        "url": "https://emu8086.sergiulefter.com/guide/",
+        "mainEntityOfPage": "https://emu8086.sergiulefter.com/guide/",
+        "inLanguage": "en",
+        "author": { "@type": "Person", "name": "Sergiu Lefter", "url": "https://github.com/sergiulefter" },
+        "about": { "@type": "SoftwareApplication", "name": "emu8086-web", "url": "https://emu8086.sergiulefter.com/" }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#guide">Skip to guide</a>
+    <header class="site-header">
+      <a class="brand" href="../">emu8086-web</a>
+      <nav aria-label="Project navigation">
+        <a href="../">Open emulator</a>
+        <a href="https://github.com/sergiulefter/emu8086-web">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="guide">
+      <p class="eyebrow">Getting started</p>
+      <h1>Your first 8086 program, in the browser.</h1>
+      <p class="lead">emu8086-web is a free Intel 8086 assembler, emulator and debugger. Write assembly, run it one instruction at a time, and watch the registers and memory change.</p>
+      <p>I built it to make the EMU8086-style workflow accessible from both Linux and MacOS, without installing Windows software, Wine or a virtual machine. It runs locally in your browser tab, with no account.</p>
+      <a class="open-button" href="../">Open emu8086-web <span aria-hidden="true">→</span></a>
+
+      <nav class="contents" aria-label="On this page">
+        <a href="#first-program">First program</a>
+        <a href="#debugging">Debugging</a>
+        <a href="#text-output">Text output</a>
+        <a href="#compatibility">Compatibility</a>
+        <a href="#questions">Questions</a>
+      </nav>
+
+      <section id="first-program">
+        <h2>1. Compile a small COM program</h2>
+        <p><a href="../">Open the emulator</a> in a modern desktop browser and replace the editor contents with this program:</p>
+        <pre><code id="first-program-source"><span class="t-dir">org</span> <span class="t-num">100h</span>
+
+<span class="t-ins">mov</span> <span class="t-reg">ax</span>, <span class="t-num">2</span>
+<span class="t-ins">add</span> <span class="t-reg">ax</span>, <span class="t-num">3</span>
+<span class="t-ins">ret</span></code></pre>
+        <p><code>org 100h</code> sets the origin used by a DOS COM program. <code>mov</code> puts 2 in the AX register, <code>add</code> adds 3, and the final <code>ret</code> returns control to DOS in this COM environment.</p>
+        <ol>
+          <li>Press <strong>emulate</strong> or <kbd>F5</kbd>. This assembles the source and loads the result into the debugger.</li>
+          <li>Press <strong>single step</strong> or <kbd>F8</kbd> once. AX becomes <code>0002</code>.</li>
+          <li>Step once more. AX becomes <code>0005</code>. Register values are displayed in hexadecimal.</li>
+          <li>Step through <code>ret</code> to finish. The return-to-operating-system message is expected.</li>
+        </ol>
+        <p>If compilation fails, check the reported line and column. Start with the program above before adapting code from another assembler: not every x86 dialect describes the same executable format.</p>
+      </section>
+
+      <section id="debugging">
+        <h2>2. Watch what each instruction changes</h2>
+        <p>The emulator window shows the CPU registers, flags, disassembly and memory. The original source window highlights the next instruction. Double-click a register or memory byte to open the extended value viewer.</p>
+        <p>Try <strong>step back</strong> after the <code>add</code> instruction in the first example. AX returns from <code>0005</code> to <code>0002</code>. Step back restores the previous machine state, including memory changes and screen output.</p>
+        <div class="table-scroll">
+          <table>
+            <caption>Useful debugger controls</caption>
+            <thead><tr><th scope="col">Control</th><th scope="col">Shortcut</th><th scope="col">What it does</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Emulate</th><td><kbd>F5</kbd></td><td>Assemble and load the program.</td></tr>
+              <tr><th scope="row">Single step</th><td><kbd>F8</kbd></td><td>Execute one instruction.</td></tr>
+              <tr><th scope="row">Step over</th><td><kbd>Shift</kbd> + <kbd>F8</kbd></td><td>Run through a procedure call or repeated instruction.</td></tr>
+              <tr><th scope="row">Step back</th><td><kbd>F6</kbd></td><td>Undo the previous instruction.</td></tr>
+              <tr><th scope="row">Run / stop</th><td><kbd>F9</kbd></td><td>Toggle continuous execution.</td></tr>
+              <tr><th scope="row">Reload</th><td><kbd>F4</kbd></td><td>Reload the current program to start again.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The step-delay setting slows continuous execution so changes are easier to follow. You can also use breakpoints, the stack, variables and flags windows. The <strong>windows</strong> menu in the taskbar restores closed or minimized windows and can reset their layout.</p>
+      </section>
+
+      <section id="text-output">
+        <h2>3. Print a message using DOS</h2>
+        <p>This COM program uses DOS interrupt <code>INT 21h</code>, service <code>09h</code>, to print a dollar-terminated string:</p>
+        <pre><code id="text-output-source"><span class="t-dir">org</span> <span class="t-num">100h</span>
+
+<span class="t-ins">mov</span> <span class="t-reg">ah</span>, <span class="t-num">09h</span>
+<span class="t-ins">lea</span> <span class="t-reg">dx</span>, message
+<span class="t-ins">int</span> <span class="t-num">21h</span>
+<span class="t-ins">ret</span>
+
+message <span class="t-dir">db</span> <span class="t-str">'Hello from emu8086-web!'</span>, <span class="t-str">'$'</span></code></pre>
+        <p><code>lea dx, message</code> puts the address of the string in DX. Press <strong>emulate</strong>, then <strong>run</strong>. The emulator screen opens when the program writes text. The final <code>$</code> marks the end of the string and is not printed. For programs that request keyboard input, click the emulator screen before typing.</p>
+        <p>The screen is an 80×25 text-mode display. You can also write character and colour bytes directly to video memory at <code>B800:0000</code>; it is not a graphics-mode canvas.</p>
+      </section>
+
+      <section id="compatibility">
+        <h2>Compatibility and current limits</h2>
+        <p>emu8086-web follows the EMU8086 4.08 workflow and supports EMU8086/MASM-style syntax for coursework programs. It is an independent implementation, not the original Windows application or a complete PC emulator.</p>
+        <p>Supported features include COM programs, BIN and boot images, common DOS and BIOS services, macros, <code>LOCAL</code>, and the bundled <code>INCLUDE 'emu8086.inc'</code>. Include files from your computer are not loaded through that directive.</p>
+        <p>EXE-style programs using constructs such as <code>.model</code>, <code>.data</code> and <code>.code</code>, graphics video modes, file and disk services, mouse services, and EMU8086 virtual devices are not supported. Check the <a href="https://github.com/sergiulefter/emu8086-web/blob/main/docs/SUPPORT_MATRIX.md">support matrix</a> and <a href="https://github.com/sergiulefter/emu8086-web/blob/main/docs/KNOWN_UI_DIFFERENCES.md">known differences</a> before relying on a feature.</p>
+        <p>The layout is designed for laptop and desktop screens, ideally 1366×768 or larger. The application is designed for modern browsers on Linux, Windows, macOS and ChromeOS; Chrome and Firefox on Linux are the tested reference platforms. This guide is readable on phones, but the emulator's window-based workspace is intended for a keyboard and a larger screen.</p>
+      </section>
+
+      <section id="questions">
+        <h2>Common questions</h2>
+        <h3>Do I need to install anything?</h3>
+        <p>No. The hosted emulator needs JavaScript and a modern browser, with no plugins or account. Assembly and execution happen in the browser.</p>
+        <h3>Can I open an existing assembly file?</h3>
+        <p>Use <strong>open</strong> or drag an <code>.asm</code> file onto the editor. The emulator's <strong>Load</strong> button also accepts raw <code>.com</code> and <code>.bin</code> files. Opening a file does not upload it to a server.</p>
+        <h3>Why does my program stop after running for a while?</h3>
+        <p>Continuous runs have a default limit of five million instructions to prevent endless loops from locking up the page. The instruction limit is configurable in options.</p>
+        <h3>Where can I find more examples?</h3>
+        <p>Use the editor's <strong>examples</strong> menu for bundled programs and <strong>new</strong> for templates. The original EMU8086 reference material is available under <a href="../documentation/">documentation and tutorials</a>, with its attribution. This guide describes emu8086-web specifically; the support matrix remains the reference for what this implementation supports.</p>
+        <h3>Where can I report a problem?</h3>
+        <p><a href="https://github.com/sergiulefter/emu8086-web/issues">Open an issue on GitHub</a> with a minimal assembly program, the action that failed, and the result you expected. Include your browser and operating system.</p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Built by Sergiu Lefter. emu8086-web is an independent project and is not affiliated with the original EMU8086 software.</p>
+      <a href="../">Back to the emulator</a>
+    </footer>
+  </body>
+</html>

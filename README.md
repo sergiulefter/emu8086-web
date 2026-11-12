@@ -5,10 +5,12 @@
 you can watch the registers, flags, memory, stack and the 80×25 text screen at `B800:0000`. Nothing needs to be
 installed, and everything runs inside your browser tab.
 
-It was created to make EMU8086-style assembly programming accessible from Linux, without installing Windows
+It was created to make EMU8086-style assembly programming accessible from both Linux and MacOS, without installing Windows
 applications, Wine or a virtual machine.
 
 **▶ Open the emulator: https://emu8086.sergiulefter.com/**
+
+[Getting started guide](https://emu8086.sergiulefter.com/guide/) — first programs, debugger controls and compatibility.
 
 ![emu8086-web running an 8086 program that writes "H" to video memory, after six single steps](docs/screenshots/02-professor-H-stepped.png)
 
@@ -192,6 +194,18 @@ old GitHub Pages site do not transfer automatically; export them from the old si
 and import them into the new site.
 
 Production builds use relative asset paths, so `dist/` works when served from any folder.
+
+The emulator opens directly at `/`. A static information footer outside React's
+`#root` keeps the project description and links available before and after the
+application mounts, including when JavaScript is disabled. The desktop workspace
+fits the remaining height above this footer and its existing taskbar.
+
+`public/guide/index.html` is an original, script-free getting-started guide for
+this implementation. It ships at `/guide/` alongside the emulator and is listed
+in `public/sitemap.xml`. Its text, code examples and CSS can be edited directly;
+it is separate from the unchanged EMU8086 reference material in `documentation/`.
+The development and preview servers resolve both static directory indexes the
+same way as Cloudflare hosting.
 
 ## Tests
 

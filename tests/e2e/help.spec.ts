@@ -46,7 +46,7 @@ test('editor menus match EMU8086 4.08', async ({ page }) => {
   await page.getByRole('menuitem', { name: 'about...' }).click();
   await expect(page.getByTestId('about-version')).toHaveText(`emu8086-web ${version}`);
   const github = page.getByTestId('about-github');
-  await expect(github).toHaveText('github.com/sergiulefter/emu8086-web');
+  await expect(github).toHaveText('GitHub');
   await expect(github).toHaveAttribute('href', 'https://github.com/sergiulefter/emu8086-web');
   await expect(github).toHaveAttribute('target', '_blank');
   await page.getByRole('button', { name: 'OK' }).click();

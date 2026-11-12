@@ -66,27 +66,28 @@ function bundledLicenses(): Plugin {
 }
 
 /**
- * Serves public/documentation/ the way Cloudflare static assets do in production: `/documentation`
- * redirects to `/documentation/`, which serves the folder's index.html (the EMU8086 frameset). Without
- * this the dev and preview servers answer both URLs with the app's own index.html.
+ * Serves static HTML directories the way Cloudflare static assets do in production.
+ * Without this the dev and preview servers answer directory URLs with the app shell.
  */
-function documentationIndex(): Plugin {
+function staticPageIndexes(): Plugin {
   type Next = () => void;
   type Req = { url?: string };
   type Res = { statusCode: number; setHeader(k: string, v: string): void; end(): void };
   const handle = (req: Req, res: Res, next: Next) => {
     const [path, query = ''] = (req.url ?? '').split('?');
-    if (path === '/documentation') {
+    const directory = ['/documentation', '/guide'].find((entry) => path === entry || path === `${entry}/`);
+    if (!directory) { next(); return; }
+    if (path === directory) {
       res.statusCode = 308;
-      res.setHeader('Location', `/documentation/${query ? `?${query}` : ''}`);
+      res.setHeader('Location', `${directory}/${query ? `?${query}` : ''}`);
       res.end();
       return;
     }
-    if (path === '/documentation/') req.url = `/documentation/index.html${query ? `?${query}` : ''}`;
+    req.url = `${directory}/index.html${query ? `?${query}` : ''}`;
     next();
   };
   return {
-    name: 'documentation-index',
+    name: 'static-page-indexes',
     configureServer(server) { server.middlewares.use(handle); },
     configurePreviewServer(server) { server.middlewares.use(handle); },
   };
@@ -100,7 +101,7 @@ export default defineConfig(({ command }) => ({
   // Production builds use relative URLs so the same dist/ works at any path,
   // e.g. Cloudflare static hosting or `npm run preview`.
   base: command === 'build' ? './' : '/',
-  plugins: [react(), bundledLicenses(), documentationIndex()],
+  plugins: [react(), bundledLicenses(), staticPageIndexes()],
   server: { port: 5173, strictPort: false },
   build: { chunkSizeWarningLimit: 1200 },
   test: {

@@ -254,7 +254,7 @@ export function AboutDialog() {
           <span>
             Source code, issues and releases:{' '}
             <a href={REPO_URL} target="_blank" rel="noopener noreferrer" data-testid="about-github">
-              {REPO_URL.replace('https://', '')}
+              GitHub
             </a>
           </span>
           <span style={{ color: '#555' }}>

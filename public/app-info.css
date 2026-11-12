@@ -1,0 +1,44 @@
+/* Static project information survives React mounting and works without JavaScript. */
+body.emulator-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  height: 100dvh;
+  margin: 0;
+  overflow: hidden;
+}
+
+.emulator-page > #root {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  overflow: hidden;
+}
+
+.app-info {
+  box-sizing: border-box;
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 24px;
+  border-top: 1px solid #c8c8c8;
+  padding: 6px 12px;
+  background: #f0f0f0;
+  color: #333;
+  font: 13px/1.5 'Segoe UI', Tahoma, 'DejaVu Sans', Arial, sans-serif;
+}
+
+.app-info p { flex: 1 1 580px; margin: 0; }
+.app-info strong { font-weight: 600; }
+.app-info nav { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.app-info a { display: inline-flex; align-items: center; min-height: 28px; color: #174b8f; text-underline-offset: 2px; }
+.app-info a:hover { color: #002c65; }
+.app-info a:focus-visible { outline: 2px solid #174b8f; outline-offset: 3px; }
+
+@media (max-width: 639px) {
+  .app-info { padding: 8px 12px; font-size: 14px; }
+  .app-info a { min-height: 44px; }
+}

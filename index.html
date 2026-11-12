@@ -10,6 +10,7 @@
     <meta name="theme-color" content="#f3f3f3" />
     <meta name="application-name" content="emu8086-web" />
     <meta name="author" content="Sergiu Lefter" />
+    <link rel="stylesheet" href="/app-info.css" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -69,33 +70,15 @@
     <link rel="preload" href="/fonts/Web437_IBM_VGA_8x14.woff" as="font" type="font/woff" crossorigin />
     <link rel="preload" href="/fonts/Web437_IBM_VGA_9x16.woff" as="font" type="font/woff" crossorigin />
   </head>
-  <body>
+  <body class="emulator-page">
     <div id="root">
       <!--
-        Shown only until the app mounts (React replaces the contents of #root).
-        This is a real description for browsers and crawlers that do not run JavaScript.
+        React replaces this loading view. The description and project links
+        below #root remain available before and after the application mounts.
       -->
       <main class="boot" aria-busy="true">
         <h1>emu8086-web — Online 8086 Assembler, Emulator &amp; Debugger</h1>
-        <p>
-          emu8086-web is a free, browser-based alternative to EMU8086, designed for students who want to write, run
-          and debug Intel 8086 assembly programs without installing Windows software.
-        </p>
-        <p>
-          Inspired by the classic EMU8086 4.08 workflow, it provides a familiar desktop-style assembly editor and
-          debugger, including register inspection, memory inspection, breakpoints, step-by-step execution and an
-          80×25 text-mode display. It runs EMU8086-style COM programs; the documentation lists the supported features
-          and current limitations.
-        </p>
-        <p>
-          It works directly in modern desktop browsers, including Chrome and Firefox on Linux, without Wine or a
-          virtual machine.
-        </p>
         <p>Loading the emulator…</p>
-        <p>
-          <a href="https://github.com/sergiulefter/emu8086-web">Source code, documentation and FAQ on GitHub</a>.
-          emu8086-web is an independent project and is not affiliated with the original EMU8086 software.
-        </p>
       </main>
       <noscript>
         <p class="boot">
@@ -104,6 +87,13 @@
         </p>
       </noscript>
     </div>
+    <footer class="app-info" aria-label="About emu8086-web">
+      <p><strong>emu8086-web</strong> is a free online Intel 8086 assembler, emulator and debugger. Run EMU8086-style assembly in your browser on Linux, Windows and macOS.</p>
+      <nav aria-label="Project information">
+        <a href="./guide/" target="_blank" rel="noopener">Getting started</a>
+        <a href="https://github.com/sergiulefter/emu8086-web" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </nav>
+    </footer>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

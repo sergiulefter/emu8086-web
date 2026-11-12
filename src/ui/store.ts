@@ -71,8 +71,11 @@ export interface Settings {
 }
 
 function viewport() {
-  const w = typeof window !== 'undefined' ? window.innerWidth : 1440;
-  const h = typeof window !== 'undefined' ? window.innerHeight - 30 : 870;
+  // The static information footer occupies space outside the application.
+  // Default, restored and tiled windows must fit the actual application area.
+  const root = typeof document !== 'undefined' ? document.getElementById('root') : null;
+  const w = root?.clientWidth || (typeof window !== 'undefined' ? window.innerWidth : 1440);
+  const h = (root?.clientHeight || (typeof window !== 'undefined' ? window.innerHeight : 900)) - 30;
   return { w, h };
 }
 

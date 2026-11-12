@@ -87,15 +87,17 @@ describe('index.html metadata', () => {
     }
   });
 
-  it('has a real description and a noscript message before the app mounts', () => {
-    const rootDiv = html.slice(html.indexOf('<div id="root">'), html.indexOf('<script type="module"'));
+  it('has a permanent description outside the React root and a noscript message', () => {
+    const rootDiv = html.slice(html.indexOf('<div id="root">'), html.indexOf('<footer'));
+    const footer = html.slice(html.indexOf('<footer'), html.indexOf('</footer>'));
     expect(rootDiv).toMatch(/<h1>emu8086-web/);
-    expect(rootDiv).toContain('alternative to EMU8086');
-    expect(rootDiv).toMatch(/Chrome and Firefox on Linux, without Wine or a\s+virtual machine/);
-    expect(rootDiv).toContain('not affiliated with the original EMU8086');
     expect(rootDiv).toMatch(/<noscript>[\s\S]*needs JavaScript/);
+    expect(footer).toContain('free online Intel 8086 assembler, emulator and debugger');
+    expect(footer).toContain('Linux, Windows and macOS');
+    expect(footer).toContain('href="./guide/"');
+    expect(footer).toContain('href="https://github.com/sergiulefter/emu8086-web"');
     // no hidden text tricks
-    expect(rootDiv).not.toMatch(/display:\s*none|visibility:\s*hidden|font-size:\s*0/);
+    expect(footer).not.toMatch(/display:\s*none|visibility:\s*hidden|font-size:\s*0/);
   });
 });
 
@@ -120,11 +122,11 @@ describe('public assets', () => {
     expect(robots).toMatch(new RegExp(`^Sitemap: ${SITE}sitemap\\.xml$`, 'm'));
   });
 
-  it('sitemap.xml is a well-formed sitemap containing only the canonical page', () => {
+  it('sitemap.xml lists the canonical emulator and guide pages', () => {
     const xml = read('public/sitemap.xml');
     expect(xml.startsWith('<?xml version="1.0" encoding="UTF-8"?>')).toBe(true);
     expect(xml).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
-    expect([...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1])).toEqual([SITE]);
+    expect([...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1])).toEqual([SITE, `${SITE}guide/`]);
     expect(xml).not.toContain('<lastmod>');
     // balanced tags
     for (const tag of ['urlset', 'url', 'loc']) {
