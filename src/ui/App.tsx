@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { store, useStore, TASK_WINDOWS, WINDOW_TITLES, type WinId } from './store';
 import * as A from './actions';
 import { MenuPopup } from './Menu';
@@ -53,6 +53,7 @@ function onGlobalKey(e: KeyboardEvent): void {
 export function App() {
   const s = useStore();
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
+  const windowsRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     window.addEventListener('keydown', onGlobalKey, true);
@@ -101,9 +102,13 @@ export function App() {
       <nav className="taskbar" aria-label="open windows">
         <button
           className="task"
+          ref={windowsRef}
           title="window layout"
+          aria-haspopup="menu"
+          aria-expanded={menu !== null}
           onClick={(e) => {
-            const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+            if (menu) { setMenu(null); return; }
+            const r = e.currentTarget.getBoundingClientRect();
             setMenu({ x: r.left, y: r.top - 90 });
           }}
         >
@@ -135,6 +140,7 @@ export function App() {
         <MenuPopup
           x={menu.x}
           y={menu.y}
+          anchorRef={windowsRef}
           onClose={() => setMenu(null)}
           items={[
             { label: 'cascade', action: () => store.cascade() },

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 
 export type MenuEntry =
@@ -25,17 +25,34 @@ interface PopupProps {
   items: MenuEntry[];
   x: number;
   y: number;
-  onClose: () => void;
+  onClose: (reason: 'outside' | 'escape' | 'select') => void;
+  anchorRef?: RefObject<HTMLElement | null>;
   depth?: number;
   autoFocus?: boolean;
 }
 
 /** Drop-down / context menu rendered in a portal above all windows. */
-export function MenuPopup({ items, x, y, onClose, depth = 0, autoFocus = true }: PopupProps) {
+export function MenuPopup({ items, x, y, onClose, anchorRef, depth = 0, autoFocus = true }: PopupProps) {
   const [hot, setHot] = useState(-1);
   const [sub, setSub] = useState<{ index: number; x: number; y: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const tree = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ x, y });
+
+  const dismissOnOutsidePress = useEffectEvent((e: PointerEvent) => {
+    const target = e.target;
+    if (target instanceof Node && !tree.current?.contains(target) && !anchorRef?.current?.contains(target)) {
+      onClose('outside');
+    }
+  });
+
+  useEffect(() => {
+    if (depth > 0) return;
+    // Window dragging can cancel the mouse events that follow pointerdown.
+    const onDown = (e: PointerEvent) => dismissOnOutsidePress(e);
+    document.addEventListener('pointerdown', onDown, true);
+    return () => document.removeEventListener('pointerdown', onDown, true);
+  }, [depth]);
 
   useLayoutEffect(() => {
     const el = ref.current;
@@ -68,11 +85,11 @@ export function MenuPopup({ items, x, y, onClose, depth = 0, autoFocus = true }:
       if (r) setSub({ index: i, x: r.right - 2, y: r.top - 3 });
       return;
     }
-    onClose();
+    onClose('select');
     it.action?.();
   };
 
-  return createPortal(
+  const content = (
     <>
       <div
         ref={ref}
@@ -86,7 +103,11 @@ export function MenuPopup({ items, x, y, onClose, depth = 0, autoFocus = true }:
           else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
           else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (hot >= 0) activate(hot); }
           else if (e.key === 'ArrowRight') { if (hot >= 0) activate(hot); }
-          else if (e.key === 'Escape' || (e.key === 'ArrowLeft' && depth > 0)) { e.preventDefault(); onClose(); }
+          else if (e.key === 'Escape' || (e.key === 'ArrowLeft' && depth > 0)) {
+            e.preventDefault();
+            anchorRef?.current?.focus({ preventScroll: true });
+            onClose('escape');
+          }
         }}
       >
         {items.map((it, i) =>
@@ -124,15 +145,16 @@ export function MenuPopup({ items, x, y, onClose, depth = 0, autoFocus = true }:
           y={sub.y}
           depth={depth + 1}
           autoFocus={false}
-          onClose={() => {
+          onClose={(reason) => {
             setSub(null);
-            onClose();
+            onClose(reason);
           }}
         />
       )}
-    </>,
-    document.body,
+    </>
   );
+  // Keep every level in one portal so clicking a submenu counts as an inside press.
+  return depth === 0 ? createPortal(<div ref={tree}>{content}</div>, document.body) : content;
 }
 
 /** Window menu bar with click-to-open, hover-to-switch and keyboard navigation. */
@@ -140,16 +162,6 @@ export function MenuBar({ menus }: { menus: MenuDef[] }) {
   const [open, setOpen] = useState<number | null>(null);
   const [anchor, setAnchor] = useState({ x: 0, y: 0 });
   const bar = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (open === null) return;
-    const onDown = (e: MouseEvent) => {
-      const t = e.target as HTMLElement;
-      if (!t.closest('.menu-pop') && !bar.current?.contains(t)) setOpen(null);
-    };
-    window.addEventListener('mousedown', onDown);
-    return () => window.removeEventListener('mousedown', onDown);
-  }, [open]);
 
   const openAt = (i: number) => {
     const el = bar.current?.children[i] as HTMLElement | undefined;
@@ -198,10 +210,10 @@ export function MenuBar({ menus }: { menus: MenuDef[] }) {
           items={menus[open].items}
           x={anchor.x}
           y={anchor.y}
-          onClose={() => {
-            const i = open;
+          anchorRef={bar}
+          onClose={(reason) => {
             setOpen(null);
-            (bar.current?.children[i] as HTMLElement | undefined)?.focus();
+            if (reason !== 'outside') (bar.current?.children[open] as HTMLElement | undefined)?.focus();
           }}
         />
       )}

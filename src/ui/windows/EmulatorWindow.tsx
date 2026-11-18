@@ -561,8 +561,11 @@ export function EmulatorWindow() {
           className="btn3d"
           ref={auxRef}
           title="auxiliary tools"
-          onClick={() => {
-            const r = auxRef.current!.getBoundingClientRect();
+          aria-haspopup="menu"
+          aria-expanded={aux !== null}
+          onClick={(e) => {
+            if (aux) { setAux(null); return; }
+            const r = e.currentTarget.getBoundingClientRect();
             setAux({ x: r.left, y: r.bottom });
           }}
         >aux</button>
@@ -584,6 +587,7 @@ export function EmulatorWindow() {
         <MenuPopup
           x={aux.x}
           y={aux.y}
+          anchorRef={auxRef}
           onClose={() => setAux(null)}
           items={[
             { label: 'memory', action: () => store.open('memory') },

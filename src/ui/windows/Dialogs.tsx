@@ -97,8 +97,11 @@ export function StatusDialog() {
             className="btn3d"
             ref={viewRef}
             disabled={!r}
-            onClick={() => {
-              const b = viewRef.current!.getBoundingClientRect();
+            aria-haspopup="menu"
+            aria-expanded={view !== null}
+            onClick={(e) => {
+              if (view) { setView(null); return; }
+              const b = e.currentTarget.getBoundingClientRect();
               setView({ x: b.left, y: b.bottom });
             }}
           >view...</button>
@@ -111,6 +114,7 @@ export function StatusDialog() {
         <MenuPopup
           x={view.x}
           y={view.y}
+          anchorRef={viewRef}
           onClose={() => setView(null)}
           items={[
             { label: 'symbol table', action: () => store.open('symbols') },

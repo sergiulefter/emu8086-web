@@ -198,21 +198,26 @@ export function editorCommand(name: string): void {
 function DropdownTool({ icon, label, onClick, items }: { icon: React.ReactNode; label: string; onClick: () => void; items: MenuEntry[] }) {
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
   return (
     <div className="tool-split" ref={ref}>
       <ToolButton icon={icon} label={label} onClick={onClick} />
       <button
         className="drop"
+        ref={trigger}
         aria-label={`${label} menu`}
+        aria-haspopup="menu"
+        aria-expanded={menu !== null}
         title={label}
         onClick={() => {
+          if (menu) { setMenu(null); return; }
           const r = ref.current!.getBoundingClientRect();
           setMenu({ x: r.left, y: r.bottom });
         }}
       >
         {Icons.dropArrow({})}
       </button>
-      {menu && <MenuPopup items={items} x={menu.x} y={menu.y} onClose={() => setMenu(null)} />}
+      {menu && <MenuPopup items={items} x={menu.x} y={menu.y} anchorRef={trigger} onClose={() => setMenu(null)} />}
     </div>
   );
 }

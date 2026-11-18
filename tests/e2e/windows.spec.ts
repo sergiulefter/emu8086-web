@@ -94,6 +94,39 @@ test('menus open, navigate and run real commands', async ({ page }) => {
   await page.keyboard.press('Escape');
 });
 
+test('dropdowns dismiss on outside clicks, repeat clicks and Escape', async ({ page }) => {
+  const examples = page.getByRole('button', { name: 'examples menu' });
+  const save = page.getByRole('button', { name: 'save menu' });
+  const windows = page.getByRole('button', { name: /windows/ });
+  const menus = page.getByRole('menu');
+
+  await examples.click();
+  await expect(menus).toBeVisible();
+  await page.getByRole('heading', { level: 1 }).click();
+  await expect(menus).toHaveCount(0);
+
+  await examples.click();
+  await save.click();
+  await expect(menus).toHaveCount(1);
+  await expect(menus.getByRole('menuitem', { name: 'save as...' })).toBeVisible();
+  await save.click();
+  await expect(menus).toHaveCount(0);
+
+  await examples.focus();
+  await page.keyboard.press('Enter');
+  await expect(menus).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(menus).toHaveCount(0);
+  await expect(examples).toBeFocused();
+
+  await windows.click();
+  await menus.getByRole('menuitem', { name: 'show' }).hover();
+  await expect(menus).toHaveCount(2);
+  await examples.click();
+  await expect(menus).toHaveCount(1);
+  await expect(menus.getByRole('menuitem', { name: 'simple i/o' })).toBeVisible();
+});
+
 test('compile shows the assembler status dialog without starting the emulator', async ({ page }) => {
   await pasteSource(page, fixture('T001_professor_H.asm'));
   await page.getByRole('button', { name: 'compile', exact: true }).click();
