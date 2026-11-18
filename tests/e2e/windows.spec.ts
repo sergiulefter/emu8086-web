@@ -127,6 +127,38 @@ test('dropdowns dismiss on outside clicks, repeat clicks and Escape', async ({ p
   await expect(menus.getByRole('menuitem', { name: 'simple i/o' })).toBeVisible();
 });
 
+test('hovering across ASCII Codes keeps menu switching active', async ({ page }) => {
+  const menubar = page.locator('[data-win=editor]').getByRole('menubar');
+  const ascii = menubar.getByRole('menuitem', { name: 'ascii codes' });
+  const help = menubar.getByRole('menuitem', { name: 'help', exact: true });
+  const math = menubar.getByRole('menuitem', { name: 'math', exact: true });
+  const popup = page.getByRole('menu');
+  const idleBackground = await ascii.evaluate((item) => getComputedStyle(item).backgroundColor);
+
+  await help.click();
+  await expect(help).toHaveAttribute('aria-expanded', 'true');
+  await expect(popup).toBeVisible();
+
+  for (const [previous, next] of [[help, math], [math, help]]) {
+    await ascii.hover();
+    await expect(previous).toHaveAttribute('aria-expanded', 'false');
+    await expect(popup).toBeHidden();
+    await expect(previous).toHaveCSS('background-color', idleBackground);
+    await expect(ascii).not.toHaveCSS('background-color', idleBackground);
+    await expect(page.getByTestId('ascii-table')).toBeHidden();
+
+    await next.hover();
+    await expect(next).toHaveAttribute('aria-expanded', 'true');
+    await expect(popup).toBeVisible();
+    await expect(ascii).toHaveCSS('background-color', idleBackground);
+  }
+
+  await ascii.hover();
+  await page.getByRole('heading', { level: 1 }).hover();
+  await math.hover();
+  await expect(popup).toBeHidden();
+});
+
 test('compile shows the assembler status dialog without starting the emulator', async ({ page }) => {
   await pasteSource(page, fixture('T001_professor_H.asm'));
   await page.getByRole('button', { name: 'compile', exact: true }).click();

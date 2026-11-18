@@ -159,42 +159,47 @@ export function MenuPopup({ items, x, y, onClose, anchorRef, depth = 0, autoFocu
 
 /** Window menu bar with click-to-open, hover-to-switch and keyboard navigation. */
 export function MenuBar({ menus }: { menus: MenuDef[] }) {
-  const [open, setOpen] = useState<number | null>(null);
-  const [anchor, setAnchor] = useState({ x: 0, y: 0 });
+  const [selected, setSelected] = useState<{ index: number; x: number; y: number } | null>(null);
   const bar = useRef<HTMLDivElement>(null);
+  const open = selected && !menus[selected.index].action ? selected : null;
 
-  const openAt = (i: number) => {
-    const el = bar.current?.children[i] as HTMLElement | undefined;
-    if (!el) return;
+  const selectAt = (index: number, el: HTMLElement, hovering = false) => {
     const r = el.getBoundingClientRect();
-    setAnchor({ x: r.left, y: r.bottom });
-    setOpen(i);
+    setSelected((current) => {
+      if (hovering && (!current || current.index === index)) return current;
+      return { index, x: r.left, y: r.bottom };
+    });
   };
 
   return (
-    <div className="menubar" ref={bar} role="menubar">
+    <div
+      className="menubar"
+      ref={bar}
+      role="menubar"
+      onMouseLeave={() => setSelected((current) => current && menus[current.index].action ? null : current)}
+    >
       {menus.map((m, i) => (
         <div
           key={m.label}
           role="menuitem"
           tabIndex={0}
           aria-haspopup={!m.action}
-          aria-expanded={open === i}
-          className={`mtop ${open === i ? 'open' : ''}`}
+          aria-expanded={open?.index === i}
+          className={`mtop ${open?.index === i ? 'open' : ''}`}
           onMouseDown={(e) => {
             e.preventDefault();
-            if (m.action) { setOpen(null); m.action(); return; }
-            if (open === i) setOpen(null);
-            else openAt(i);
+            if (m.action) { setSelected(null); m.action(); return; }
+            if (open?.index === i) setSelected(null);
+            else selectAt(i, e.currentTarget);
           }}
-          onMouseEnter={() => {
-            if (open !== null && open !== i && !m.action) openAt(i);
+          onMouseEnter={(e) => {
+            if (selected) selectAt(i, e.currentTarget, true);
           }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === ' ') {
               e.preventDefault();
-              if (m.action) m.action();
-              else openAt(i);
+              if (m.action) { setSelected(null); m.action(); }
+              else selectAt(i, e.currentTarget);
             } else if (e.key === 'ArrowRight') {
               (bar.current?.children[(i + 1) % menus.length] as HTMLElement)?.focus();
             } else if (e.key === 'ArrowLeft') {
@@ -207,13 +212,13 @@ export function MenuBar({ menus }: { menus: MenuDef[] }) {
       ))}
       {open !== null && (
         <MenuPopup
-          items={menus[open].items}
-          x={anchor.x}
-          y={anchor.y}
+          items={menus[open.index].items}
+          x={open.x}
+          y={open.y}
           anchorRef={bar}
           onClose={(reason) => {
-            setOpen(null);
-            if (reason !== 'outside') (bar.current?.children[open] as HTMLElement | undefined)?.focus();
+            setSelected(null);
+            if (reason !== 'outside') (bar.current?.children[open.index] as HTMLElement | undefined)?.focus();
           }}
         />
       )}
