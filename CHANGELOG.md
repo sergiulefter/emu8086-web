@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.5 — 2026-11-18
+
+- **Dropdown menus** close when you click outside, click their button again, or press Escape. Opening another
+  dropdown closes the previous one.
+- **Menu bar hover** switches between dropdowns even when the pointer crosses a direct action such as
+  **ascii codes**. Only the current menu item stays highlighted.
+- **Social previews** for the emulator and guide use `/og.png`. Existing links to `/og-image.png` continue to work.
+
 ## 1.3.4 — 2026-11-12
 
 - **Getting started guide** at `/guide/` explains how to assemble, run and debug a first program, print text
