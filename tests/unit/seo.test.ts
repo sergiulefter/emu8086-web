@@ -64,8 +64,8 @@ describe('index.html metadata', () => {
     for (const k of ['og:type', 'og:title', 'og:description', 'og:url', 'og:image']) expect(meta('property', k)).toHaveLength(1);
     for (const k of ['twitter:card', 'twitter:title', 'twitter:description', 'twitter:image']) expect(meta('name', k)).toHaveLength(1);
     expect(meta('property', 'og:url')).toEqual([SITE]);
-    expect(meta('property', 'og:image')).toEqual([`${SITE}og-image.png`]);
-    expect(meta('name', 'twitter:image')).toEqual([`${SITE}og-image.png`]);
+    expect(meta('property', 'og:image')).toEqual([`${SITE}og.png`]);
+    expect(meta('name', 'twitter:image')).toEqual([`${SITE}og.png`]);
     expect(meta('name', 'twitter:card')).toEqual(['summary_large_image']);
   });
 
@@ -103,7 +103,7 @@ describe('index.html metadata', () => {
 
 describe('public assets', () => {
   it('social preview image is 1200 x 630', () => {
-    expect(pngSize('public/og-image.png')).toEqual({ w: 1200, h: 630 });
+    expect(pngSize('public/og.png')).toEqual({ w: 1200, h: 630 });
   });
 
   it('icons referenced by index.html exist', () => {

@@ -53,7 +53,7 @@ for (const f of readdirSync(join(dist, 'assets')).filter((n) => n.endsWith('.css
   }
 }
 
-for (const f of ['robots.txt', 'sitemap.xml', 'og-image.png', 'favicon.svg', 'favicon-48.png', 'apple-touch-icon.png']) {
+for (const f of ['robots.txt', 'sitemap.xml', 'og.png', 'favicon.svg', 'favicon-48.png', 'apple-touch-icon.png']) {
   check(existsSync(join(dist, f)), `${f} missing from dist`);
 }
 
@@ -83,7 +83,7 @@ if (existsSync(guidePath)) {
 check(readFileSync(join(dist, 'sitemap.xml'), 'utf8').includes(`${SITE}guide/`), 'guide missing from sitemap');
 // the og:image must be the file we ship
 const og = html.match(/property="og:image" content="([^"]+)"/);
-check(og && og[1] === `${SITE}og-image.png`, 'og:image URL does not point to the shipped og-image.png');
+check(og && og[1] === `${SITE}og.png`, 'og:image URL does not point to the shipped og.png');
 
 if (problems.length) {
   console.error(`SEO check failed (${problems.length}):\n- ${problems.join('\n- ')}`);
