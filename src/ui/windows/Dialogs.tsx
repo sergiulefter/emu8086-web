@@ -251,18 +251,20 @@ export function AboutDialog() {
   return (
     <Window id="about" title="about emu8086-web" icon={<Icons.appTool />} tool resizable={false}>
       <div className="dlg">
-        <div className="msg-body" style={{ flexDirection: 'column', gap: 6 }}>
+        <div className="msg-body" style={{ flexDirection: 'column', gap: 6, overflowY: 'auto' }}>
           <b style={{ fontSize: 14 }} data-testid="about-version">emu8086-web {APP_VERSION}</b>
-          <span>assembler and microprocessor emulator for the browser, modelled on the EMU8086 4.08 workflow used in class.</span>
-          <span>Runs entirely in this browser tab: no server, account or network access.</span>
+          <span>Independent browser assembler and emulator modelled on EMU8086 4.08.</span>
+          <span>Runs in this tab without a server, account or network access.</span>
           <span>
             Source code, issues and releases:{' '}
             <a href={REPO_URL} target="_blank" rel="noopener noreferrer" data-testid="about-github">
               GitHub
             </a>
+            {import.meta.env.PROD && <> · <a href="./LICENSES.txt" target="_blank" rel="noopener noreferrer">License and credits</a></>}
           </span>
+          <span>Original project material is source-available. Private hosting is free. Public hosting requires prior written permission.</span>
           <span style={{ color: '#555' }}>
-            Not affiliated with EMU8086 or its authors; all artwork is original.
+            EMU8086 documentation and macro library © EMU8086.COM.
             Fonts: The Ultimate Oldschool PC Font Pack by VileR (int10h.org), CC BY-SA 4.0.
             Editor: CodeMirror (MIT). UI: React (MIT).
           </span>

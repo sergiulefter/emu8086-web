@@ -1,22 +1,118 @@
-MIT License
+emu8086-web Source-Available License v1.0
 
 Copyright (c) 2026 Sergiu Lefter
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+1. Scope and ownership
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Sergiu Lefter grants this license only for original emu8086-web material for
+which he controls the licensing rights ("Covered Material"). It covers that
+material in source and built form, including when incorporated into a modified
+version. Each copyright holder retains ownership of their work. This is a
+source-available license. It is not an OSI-approved open source license.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+2. Definitions
 
+"You" means the individual or organization exercising these permissions.
+"Authorized Users" are you and members of a defined private group whom you
+authorize for a personal, educational, testing or internal purpose, such as
+your household, enrolled class or work team. A group open to anyone who signs
+up, pays or follows a public invitation is public.
+
+"Private Use" means use by Authorized Users alone for one of those purposes.
+"Substantial Functionality" means a core capability of the Covered Material,
+such as assembling, running or debugging 8086 programs, even when accessed
+through a different interface or as part of a larger product.
+
+"Public Hosting" means operating a publicly accessible copy of the Covered
+Material, or providing the general public with network access to Substantial
+Functionality implemented by it. This includes websites, online applications,
+embedded emulators and APIs, whether free or paid.
+
+3. Permissions
+
+Subject to this license, anyone may view, study and download the source.
+You have a worldwide, nonexclusive, royalty-free license to run the software
+locally and to copy, build, modify and self-host it for Private Use. You may
+make backups and provide Authorized Users with the source or built copies
+they need for that use. Keep those copies within the group and provide this
+license with them. No separate permission or payment is required.
+
+Private self-hosting includes localhost, a restricted LAN, a personal server,
+and a VPN or authenticated internet service. An internet-connected server
+qualifies if access to the software and its functionality is restricted to
+Authorized Users and the service is not offered to the public.
+
+4. GitHub and contributions
+
+You may use GitHub's repository features to view and fork the public source
+and submit changes to the project by pull request. This license preserves
+the rights granted under GitHub's applicable platform terms. Serving a working
+public emulator from a fork, including through GitHub Pages, requires prior
+written permission under section 5.
+
+For your own original contributions submitted by pull request, you retain
+ownership and grant Sergiu Lefter a nonexclusive, royalty-free license to
+use and modify them, host them in the official emulator, and include them in
+project versions distributed under this license. Identify any third-party
+material you submit and its terms. You can grant only rights you control.
+
+5. Uses requiring prior written permission
+
+Unless expressly permitted above or independently authorized, you must obtain
+prior written permission from Sergiu Lefter before you:
+
+(a) publicly host the software or any modified version, including by offering
+    its Substantial Functionality to the public over the internet or operating
+    a competing publicly hosted emulator service using Covered Material;
+(b) redistribute, publish or otherwise provide copies of the Covered Material
+    or a substantial portion of it, in source or built form, outside the private
+    copying, GitHub platform permissions and contributions described above; or
+(c) sell or commercially distribute copies of the Covered Material.
+
+These restrictions concern the use of Covered Material. You retain any rights
+you have independently of this license, including under applicable law.
+
+6. Notices and third-party material
+
+Keep this license and all applicable copyright, attribution and license
+notices with permitted copies and modified versions of Covered Material.
+
+Third-party works remain subject solely to their respective terms. Examples
+include the EMU8086 reference documentation and emu8086.inc, IBM VGA fonts,
+software dependencies, and third-party classroom exercises. This license
+neither grants rights in those works nor adds restrictions to their use.
+See docs/THIRD_PARTY_NOTICES.md and the notices shipped with the build.
+
+7. Effective versions and earlier MIT grants
+
+The change begins at the commit introducing this license immediately after
+v1.3.5 (d9f77b90500ae3ea8fad795499fffcb4568fced4). It applies to Covered
+Material offered under this license in that revision and subsequent releases
+carrying this license. Earlier MIT grants remain in force for the material
+already made available under MIT. Anyone may continue to use, develop, host
+and distribute forks of the last MIT version under the original MIT terms.
+Those grants do not extend to new material solely offered under this license.
+
+8. Termination
+
+If you violate a condition of this license, your permissions under it
+terminate automatically. Stop any activity that relies on those permissions.
+You may request reinstatement in writing after correcting the violation.
+Reinstatement requires written confirmation from Sergiu Lefter. Termination
+does not affect independent rights or third-party licenses.
+
+9. Warranty and liability
+
+To the fullest extent permitted by applicable law, the Covered Material is
+provided "as is", without express or implied warranty, including warranties
+of merchantability, fitness for a particular purpose and noninfringement.
+To the same extent, no author or copyright holder is liable for any claim,
+damages or other liability arising from the Covered Material or its use,
+whether in contract, tort or otherwise.
+
+10. Permission requests
+
+Contact Sergiu Lefter through https://github.com/sergiulefter/emu8086-web
+with a description of the version and use for which you seek permission.
+An exception applies only to the extent expressly authorized in writing
+by Sergiu Lefter and only to rights he controls.

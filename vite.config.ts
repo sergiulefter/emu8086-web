@@ -4,7 +4,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
- * Writes dist/LICENSES.txt: this project's MIT licence followed by the full
+ * Writes dist/LICENSES.txt: the project licence, third-party credits and the full
  * licence text of every production dependency bundled into the app (the
  * minified bundle does not keep their licence comments). Fails the build if a
  * bundled package has no licence file.
@@ -34,21 +34,27 @@ function bundledLicenses(): Plugin {
         'emu8086-web - licences',
         '=======================',
         '',
-        'emu8086-web itself is licensed under the MIT License:',
+        'Project license (original material for which Sergiu Lefter controls licensing rights)',
         '',
         readFileSync(join(root, 'LICENSE'), 'utf8').trim(),
         '',
-        'The fonts in fonts/ are The Ultimate Oldschool PC Font Pack by VileR (int10h.org), licensed under',
-        'CC BY-SA 4.0 (see fonts/LICENSE-oldschool-pc-fonts.txt). They are NOT covered by the MIT License above.',
+        'Third-party materials and their respective terms',
+        '===============================================',
         '',
-        'documentation/ is the EMU8086 4.08 documentation, reproduced unchanged.',
+        'The fonts in fonts/ are The Ultimate Oldschool PC Font Pack by VileR (int10h.org), licensed under',
+        'CC BY-SA 4.0 (see fonts/LICENSE-oldschool-pc-fonts.txt). The fonts are distributed unmodified.',
+        '',
+        'documentation/ contains the original EMU8086 4.08 documentation with an added notice frame.',
         'Copyright (c) 2015 by EMU8086.COM All rights reserved. Portions Copyright 1997-2010 Barry Allyn.',
         'The emu8086 ReadMe allows reproducing it with this copyright notice and a link to http://www.emu8086.com.',
-        'It is NOT covered by the MIT License above.',
         '',
         'The application bundle includes EMU8086 4.08\'s emu8086.inc, unchanged, for INCLUDE \'emu8086.inc\'.',
         'Copyright (c) 2015 by EMU8086.COM All rights reserved. http://www.emu8086.com',
-        'Reproduced under the same emu8086 ReadMe permission. It is NOT covered by the MIT License above.',
+        'The ReadMe requires a copyright notice and hyperlink for reproduction of reference information.',
+        'Whether its permission covers bundling this macro source requires confirmation.',
+        '',
+        'The two video memory classroom examples (H and diagonal HELLO) come from university course material.',
+        'Their rights remain with their respective holders.',
         '',
         'The application bundle (assets/*.js) includes the following third-party packages:',
         ...[...seen.entries()].sort(([a], [b]) => a.localeCompare(b)).flatMap(([name, p]) => [

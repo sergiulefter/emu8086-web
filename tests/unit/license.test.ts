@@ -1,29 +1,40 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { build } from 'vite';
 
-const read = (p: string) => readFileSync(join(process.cwd(), p), 'utf8');
+const read = (path: string) => readFileSync(path, 'utf8');
+const name = 'emu8086-web Source-Available License v1.0';
 
 describe('project licence', () => {
-  it('LICENSE is the standard MIT text with the project copyright', () => {
+  it('identifies the licensor and the boundary with MIT releases', () => {
     const text = read('LICENSE');
-    expect(text.split(/\r?\n/)[0]).toBe('MIT License');
+    expect(text.split(/\r?\n/)[0]).toBe(name);
     expect(text).toContain('Copyright (c) 2026 Sergiu Lefter');
-    expect(text).toContain('Permission is hereby granted, free of charge, to any person obtaining a copy');
-    expect(text).toContain('The above copyright notice and this permission notice shall be included in all');
-    expect(text).toContain('THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR');
-    expect(text).not.toMatch(/\[year\]|\[fullname\]/);
+    expect(text).toContain('v1.3.5 (d9f77b90500ae3ea8fad795499fffcb4568fced4)');
+    expect(text).toContain('Earlier MIT grants remain in force');
   });
 
-  it('package.json declares MIT and the README links the licence', () => {
-    expect(JSON.parse(read('package.json')).license).toBe('MIT');
+  it('points package metadata and the README to the custom licence', () => {
+    expect(JSON.parse(read('package.json')).license).toBe('SEE LICENSE IN LICENSE');
+    expect(JSON.parse(read('package-lock.json')).packages[''].license).toBe('SEE LICENSE IN LICENSE');
+    expect(read('README.md')).toContain(name);
     expect(read('README.md')).toMatch(/## License[\s\S]*\[LICENSE\]\(LICENSE\)/);
   });
 
-  it('third-party notices keep the font licence and state what MIT does not cover', () => {
-    const notices = read('docs/THIRD_PARTY_NOTICES.md');
-    expect(notices).toContain('CC BY-SA 4.0');
-    expect(notices).toContain('does **not** cover');
-    expect(notices).toContain('LICENSES.txt');
+  it('ships the complete project licence followed by the independent third-party notices', async () => {
+    const result = await build({ build: { write: false }, logLevel: 'silent' });
+    const files = (Array.isArray(result) ? result : [result]).flatMap(r => 'output' in r ? r.output : []);
+    const notices = files.find(file => file.fileName === 'LICENSES.txt');
+    if (notices?.type !== 'asset') throw new Error('Missing LICENSES.txt');
+
+    const [project, thirdParty] = String(notices.source).split('Third-party materials and their respective terms');
+    expect(project).toContain(read('LICENSE').trim());
+    for (const credit of ['CC BY-SA 4.0', 'VileR', 'fonts/LICENSE-oldschool-pc-fonts.txt', 'EMU8086.COM',
+      'http://www.emu8086.com', 'Barry Allyn', 'emu8086.inc', 'classroom examples']) {
+      expect(thirdParty).toContain(credit);
+    }
+    for (const pkg of ['react', '@codemirror/view']) {
+      expect(thirdParty).toContain(read(`node_modules/${pkg}/LICENSE`).trim());
+    }
   });
 });

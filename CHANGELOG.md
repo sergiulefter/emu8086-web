@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Adopt the emu8086-web Source-Available License v1.0 for original project material after v1.3.5.
+  Private self-hosting is free. Public hosting requires prior written permission. Existing MIT grants
+  and third-party terms continue to apply to their respective material. See [LICENSE](LICENSE).
+
 ## 1.3.5 — 2026-11-18
 
 - **Dropdown menus** close when you click outside, click their button again, or press Escape. Opening another

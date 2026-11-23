@@ -110,7 +110,7 @@ function defaultLayout(): Record<WinId, Omit<Win, 'id' | 'z' | 'open' | 'minimiz
     convertor: { x: 260, y: 140, w: 360, h: 280 },
     ascii: { x: 240, y: 90, w: 656, h: 428 }, // EMU8086 4.08 ascii codes: 8 x 80 px columns, 32 x 12 px rows
     options: center(420, 330),
-    about: center(400, 260),
+    about: center(440, 300),
     status: center(520, 330),
     message: center(380, 190),
     symbols: { x: 200, y: 110, w: 420, h: 300 },

@@ -133,8 +133,8 @@ Yes. Use **open** or drag an `.asm` file onto the editor. The emulator's **Load*
 and `.bin` files. Files stay on your computer; nothing is uploaded to a server.
 
 **Is emu8086-web affiliated with the original EMU8086?**
-No. It is an independent, open-source project (MIT License) with its own code and artwork. It contains no EMU8086
-code, binaries, icons or library files.
+No. It is an independent implementation. The bundled EMU8086 4.08 documentation and macro library retain
+their original attribution and terms.
 
 **What are its limitations?**
 - It emulates an 8086 with the DOS and BIOS services that coursework typically uses. It is not a full PC.
@@ -166,7 +166,10 @@ npm run preview        # http://localhost:4173
 
 ## Deployment
 
-The app is hosted on Cloudflare Workers at **https://emu8086.sergiulefter.com/**.
+Public deployment of a newly licensed version requires prior written permission from Sergiu Lefter.
+Private self-hosting is free, including on an internet-connected server restricted to your class or team.
+
+The official app is hosted on Cloudflare Workers at **https://emu8086.sergiulefter.com/**.
 `wrangler.jsonc` serves `dist/` and attaches the custom domain with managed DNS and HTTPS.
 
 ```bash
@@ -279,15 +282,18 @@ docs/              architecture, ADRs, UI inventory/evidence, support matrix, ve
 
 ## License
 
-emu8086-web is licensed under the **MIT License**; see the [LICENSE](LICENSE) file. Copyright (c) 2026 Sergiu Lefter.
+The **emu8086-web Source-Available License v1.0** covers original material for which Sergiu Lefter controls
+licensing rights. Anyone may inspect and download the source, run it locally, modify it for private use,
+and contribute through GitHub pull requests. Private self-hosting is free, including for a class or work
+team behind authentication or a VPN. Public hosting, including a free mirror or public emulator API,
+requires prior written permission. The same applies to selling copies or redistributing them beyond the
+permissions in the [LICENSE](LICENSE).
 
-Bundled third-party components keep their own licences and are not relicensed under MIT:
-- React and CodeMirror are MIT.
-- The IBM VGA fonts are CC BY-SA 4.0.
+The change begins with the licensing commit immediately after **v1.3.5**
+(`d9f77b90500ae3ea8fad795499fffcb4568fced4`). Previously published MIT versions and forks based on
+them may continue to be developed, hosted and distributed under their
+[original MIT terms](https://github.com/sergiulefter/emu8086-web/blob/d9f77b90500ae3ea8fad795499fffcb4568fced4/LICENSE).
 
-The live site lists all of them at [LICENSES.txt](https://emu8086.sergiulefter.com/LICENSES.txt).
-[docs/THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md) has the details, including the material the MIT
-License does not cover.
-
-emu8086-web is an independent project and is not affiliated with EMU8086 or its authors. It contains no EMU8086
-code, binaries, icons or library files; all artwork is original.
+EMU8086’s documentation and macro library, the CC BY-SA 4.0 fonts, classroom material and dependencies
+retain their own terms. See the [third-party notices](docs/THIRD_PARTY_NOTICES.md). Each production build
+includes the project license and bundled credits in [LICENSES.txt](https://emu8086.sergiulefter.com/LICENSES.txt).
