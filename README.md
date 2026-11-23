@@ -289,9 +289,9 @@ team behind authentication or a VPN. Public hosting, including a free mirror or 
 requires prior written permission. The same applies to selling copies or redistributing them beyond the
 permissions in the [LICENSE](LICENSE).
 
-The change begins with the licensing commit immediately after **v1.3.5**
-(`d9f77b90500ae3ea8fad795499fffcb4568fced4`). Previously published MIT versions and forks based on
-them may continue to be developed, hosted and distributed under their
+The change begins at commit `c5e9343fd45e54286b10e5df5b9c623117071216`, immediately after **v1.3.5**.
+Previously published MIT versions and forks based on them may continue to be developed, hosted and
+distributed under their
 [original MIT terms](https://github.com/sergiulefter/emu8086-web/blob/d9f77b90500ae3ea8fad795499fffcb4568fced4/LICENSE).
 
 EMU8086’s documentation and macro library, the CC BY-SA 4.0 fonts, classroom material and dependencies

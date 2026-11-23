@@ -1,10 +1,12 @@
 # Changelog
 
-## Unreleased
+## 2.0.0 — 2026-11-23
 
 - Adopt the emu8086-web Source-Available License v1.0 for original project material after v1.3.5.
   Private self-hosting is free. Public hosting requires prior written permission. Existing MIT grants
   and third-party terms continue to apply to their respective material. See [LICENSE](LICENSE).
+- The About dialog links to the production license and credits. The build includes the full project license
+  alongside the EMU8086, font and dependency notices in `LICENSES.txt`.
 
 ## 1.3.5 — 2026-11-18
 
