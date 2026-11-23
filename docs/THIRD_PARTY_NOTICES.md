@@ -45,9 +45,8 @@ and a notice frame to the two other framesets, so direct links also carry the at
 
 **EMU8086 4.08 macro library** (`src/assembler/includes/emu8086.inc`, bundled for `INCLUDE 'emu8086.inc'`):
 Copyright (c) 2015 by EMU8086.COM. All rights reserved. [EMU8086.COM](http://www.emu8086.com).
-The bundled source file matches the installed `inc/emu8086.inc` byte for byte. The EMU8086 ReadMe grants
-permission to reproduce reference information. It gives no express grant to redistribute the macro
-library in another application. The emu8086-web license grants no rights in this file.
+The bundled source file matches the installed `inc/emu8086.inc` byte for byte.
+The emu8086-web license grants no rights in this file.
 
 These statements were checked against the installed texts in the
 [archived 4.08r11 distribution](https://github.com/dong-zj/C-compiler/blob/dcc6cf7f873d8fdbd51c1c92ec9d2f4e8d9810f4/emu8086v408r11.zip)

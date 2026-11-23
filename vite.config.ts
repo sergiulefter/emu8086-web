@@ -50,7 +50,6 @@ function bundledLicenses(): Plugin {
         '',
         'The application bundle includes EMU8086 4.08\'s emu8086.inc, unchanged, for INCLUDE \'emu8086.inc\'.',
         'Copyright (c) 2015 by EMU8086.COM All rights reserved. http://www.emu8086.com',
-        'The EMU8086 ReadMe gives no express grant to redistribute the macro library in another application.',
         'The emu8086-web license grants no rights in this file.',
         '',
         'The two video memory classroom examples (H and diagonal HELLO) come from university course material.',
