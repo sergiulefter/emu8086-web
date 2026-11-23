@@ -7,6 +7,7 @@
   and third-party terms continue to apply to their respective material. See [LICENSE](LICENSE).
 - The About dialog links to the production license and credits. The build includes the full project license
   alongside the EMU8086, font and dependency notices in `LICENSES.txt`.
+- Direct links to the original EMU8086 help pages display the copyright notice and source link.
 
 ## 1.3.5 — 2026-11-18
 

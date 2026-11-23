@@ -14,7 +14,8 @@ The following material retains its own terms:
 - the two short classroom exercises reproduced for compatibility testing: `fixtures/T001_professor_H.asm`,
   `fixtures/T002_diagonal_HELLO.asm`, `fixtures/T002b_classroom_HELLO.asm`, and the matching examples *video
   memory: H* and *video memory: diagonal HELLO* in `src/examples/index.ts`. They come from university course
-  material and are not claimed as original work of this project.
+  material. Sergiu Lefter has confirmed permission to publish them as examples in emu8086-web.
+  Their rights remain with their respective holders.
 
 The candidate emulator `daohainam/emulator-8086-js` has no licence and was not used
 ([ADR-001](adr/ADR-001-cpu-engine.md)).
@@ -38,6 +39,8 @@ The installation's root `ReadMe.txt`, under COPYRIGHTS, permits reproducing, upl
 translating reference information if the use includes the copyright notice and a hyperlink to
 [EMU8086.COM](http://www.emu8086.com). The documentation files match the installation apart from the
 added notice frame in `index.html` and the new `notice.html` that displays the notice and link.
+When serving or building the site, Vite adds the copyright notice and link to standalone articles
+and a notice frame to the two other framesets, so direct links also carry the attribution.
 `tests/unit/documentation.test.ts` checks the original files by SHA-256.
 
 **EMU8086 4.08 macro library** (`src/assembler/includes/emu8086.inc`, bundled for `INCLUDE 'emu8086.inc'`):
@@ -50,8 +53,6 @@ It does not expressly mention redistribution of executable macro source in anoth
 installer's `LICENCE.txt` describes evaluation and site licences for EMU8086. Its separate redistribution
 terms concern Flat Assembler. The include directory's `__README_IMPORTANT.txt` addresses updates only.
 Confirm permission to redistribute the macro source and bundle it into JavaScript with the rights holder.
-For the documentation, confirm that the framed notice suffices when individual HTML pages are opened
-directly. The course exercises listed above also need an independent basis for redistribution.
 
 These statements were checked against the installed texts in the
 [archived 4.08r11 distribution](https://github.com/dong-zj/C-compiler/blob/dcc6cf7f873d8fdbd51c1c92ec9d2f4e8d9810f4/emu8086v408r11.zip)

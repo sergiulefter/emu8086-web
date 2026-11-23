@@ -1,4 +1,4 @@
-// The EMU8086 4.08 documentation in public/documentation is served as installed. These checks keep
+// The EMU8086 4.08 documentation in public/documentation is stored as installed, except for the notice frame. These checks keep
 // it byte-for-byte identical to the original files (hashes taken from C:\emu8086\documentation)
 // and keep the copyright notice and emu8086.com link that its ReadMe requires.
 import { describe, expect, it } from 'vitest';

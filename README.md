@@ -206,7 +206,7 @@ fits the remaining height above this footer and its existing taskbar.
 `public/guide/index.html` is an original, script-free getting-started guide for
 this implementation. It ships at `/guide/` alongside the emulator and is listed
 in `public/sitemap.xml`. Its text, code examples and CSS can be edited directly;
-it is separate from the unchanged EMU8086 reference material in `documentation/`.
+it is separate from the EMU8086 reference material in `documentation/`.
 The development and preview servers resolve both static directory indexes the
 same way as Cloudflare hosting.
 
@@ -265,7 +265,7 @@ docs/              architecture, ADRs, UI inventory/evidence, support matrix, ve
 - [Live emulator](https://emu8086.sergiulefter.com/) and the
   [GitHub repository](https://github.com/sergiulefter/emu8086-web)
 - [EMU8086 4.08 documentation and tutorials](https://emu8086.sergiulefter.com/documentation/): the original
-  EMU8086 help, unchanged (Copyright (c) 2015 by EMU8086.COM, [www.emu8086.com](http://www.emu8086.com)). F1 opens it.
+  EMU8086 help with attribution on direct links (Copyright (c) 2015 by EMU8086.COM, [www.emu8086.com](http://www.emu8086.com)). F1 opens it.
 - [Architecture overview](docs/ARCHITECTURE.md): how the assembler, CPU, DOS layer, screen and debugger fit together
 - [Architecture decision records](docs/adr/) (ADR-001 to ADR-006): CPU engine, assembler, DOS/PSP, VGA text mode,
   step back, window manager

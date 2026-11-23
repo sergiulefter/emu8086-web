@@ -31,6 +31,9 @@ test('documentation pages and images load from /documentation/', async ({ page }
   const res = await page.goto('/documentation/8086_instruction_set.html');
   expect(res?.status()).toBe(200);
   await expect(page.locator('body')).toContainText('MOV');
+  const credit = page.locator('footer');
+  await expect(credit).toContainText('Copyright © 2015 by EMU8086.COM');
+  await expect(credit.getByRole('link')).toHaveAttribute('href', 'http://www.emu8086.com');
   expect((await page.request.get('/documentation/img/array.gif')).headers()['content-type']).toBe('image/gif');
 });
 

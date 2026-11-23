@@ -27,8 +27,8 @@ explicit message. Nothing is faked.
 - **Options dialog** offers step delay, instruction limit per run, auto-show screen, screen font and window layout.
   It does not offer EMU8086's editor colour and font customisation.
 - **Help**: F1, the help button and help → documentation and tutorials open EMU8086 4.08's own HTML
-  documentation, unchanged, at `/documentation/` in a separate browser tab. A bottom frame shows the copyright notice
-  and emu8086.com link that its licence requires. On the live site, Cloudflare serves the pages without the `.html`
+  documentation at `/documentation/` in a separate browser tab. The notice frame and individual help pages show
+  the copyright notice and emu8086.com link. On the live site, Cloudflare serves the pages without the `.html`
   extension (`/documentation/help`). Because the documentation describes EMU8086 itself, some of what it covers is
   not available here: see this file and `SUPPORT_MATRIX.md`. help → check for an update only reports that the web
   version is always current. `.RADIX` and `#MEM` use source directives and the existing editor/emulator views;
