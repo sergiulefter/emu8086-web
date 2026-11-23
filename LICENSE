@@ -26,7 +26,9 @@ through a different interface or as part of a larger product.
 "Public Hosting" means operating a publicly accessible copy of the Covered
 Material, or providing the general public with network access to Substantial
 Functionality implemented by it. This includes websites, online applications,
-embedded emulators and APIs, whether free or paid.
+embedded emulators and APIs, whether free or paid. Requiring a login does
+not by itself make a service private. A hosted emulator or API that anyone
+can register to use is Public Hosting, even if registration is free.
 
 3. Permissions
 
@@ -37,24 +39,34 @@ make backups and provide Authorized Users with the source or built copies
 they need for that use. Keep those copies within the group and provide this
 license with them. No separate permission or payment is required.
 
-Private self-hosting includes localhost, a restricted LAN, a personal server,
-and a VPN or authenticated internet service. An internet-connected server
-qualifies if access to the software and its functionality is restricted to
-Authorized Users and the service is not offered to the public.
+You may run the software on a local computer, including on localhost, and
+host it on a personal server, a restricted LAN or a VPN for Authorized
+Users. A teacher may host it for an enrolled class. A company may host it
+on an internal server for designated employees. An internet-connected server
+qualifies for Private Use if access to the software and its functionality
+is restricted to Authorized Users and the service is not offered to the public.
 
 4. GitHub and contributions
 
 You may use GitHub's repository features to view and fork the public source
 and submit changes to the project by pull request. This license preserves
 the rights granted under GitHub's applicable platform terms. Serving a working
-public emulator from a fork, including through GitHub Pages, requires prior
-written permission under section 5.
+public emulator from a fork, including through GitHub Pages, is Public Hosting
+under section 5. Section 7 preserves public hosting rights under MIT.
 
-For your own original contributions submitted by pull request, you retain
-ownership and grant Sergiu Lefter a nonexclusive, royalty-free license to
-use and modify them, host them in the official emulator, and include them in
-project versions distributed under this license. Identify any third-party
-material you submit and its terms. You can grant only rights you control.
+Before submitting a pull request, read and expressly accept the following
+contribution terms in the pull request. You retain ownership of your work.
+For original material you submit under these terms, you grant Sergiu Lefter
+a perpetual, worldwide, nonexclusive, royalty-free, irrevocable license to
+use, reproduce, modify, publicly host, distribute, sublicense and relicense
+your contribution, including commercially and under different licenses in
+future releases. This grant is limited to rights you control or are
+authorized to grant on the rights holder's behalf. Identify any third-party
+material you submit, its source and its terms.
+
+Earlier contributions remain under the terms on which they were submitted.
+Applying this contribution grant to an earlier submission requires the
+rights holder's separate express agreement.
 
 5. Uses requiring prior written permission
 
@@ -77,7 +89,7 @@ you have independently of this license, including under applicable law.
 Keep this license and all applicable copyright, attribution and license
 notices with permitted copies and modified versions of Covered Material.
 
-Third-party works remain subject solely to their respective terms. Examples
+Third-party material outside the scope of section 1 retains its own terms. Examples
 include the EMU8086 reference documentation and emu8086.inc, IBM VGA fonts,
 software dependencies, and third-party classroom exercises. This license
 neither grants rights in those works nor adds restrictions to their use.
@@ -88,18 +100,31 @@ See docs/THIRD_PARTY_NOTICES.md and the notices shipped with the build.
 The change begins at the commit introducing this license immediately after
 v1.3.5 (d9f77b90500ae3ea8fad795499fffcb4568fced4). It applies to Covered
 Material offered under this license in that revision and subsequent releases
-carrying this license. Earlier MIT grants remain in force for the material
-already made available under MIT. Anyone may continue to use, develop, host
-and distribute forks of the last MIT version under the original MIT terms.
-Those grants do not extend to new material solely offered under this license.
+carrying this license. Earlier MIT grants remain in force indefinitely for
+material previously released under MIT, including for anyone who obtains
+that version after the change. Under the original MIT terms, anyone may use,
+modify, publicly host and distribute that material and continue developing
+forks of v1.3.5. Keep the notices required by MIT when exercising those rights.
+
+Repackaging previously MIT-licensed material, including in a later release,
+does not revoke those permissions. Newly introduced original material offered
+solely under this license is governed by its restrictions. Including both in
+one version does not extend the earlier MIT grant to that new material.
 
 8. Termination
 
-If you violate a condition of this license, your permissions under it
+If you violate a condition of this license, the permissions it grants you
 terminate automatically. Stop any activity that relies on those permissions.
-You may request reinstatement in writing after correcting the violation.
-Reinstatement requires written confirmation from Sergiu Lefter. Termination
-does not affect independent rights or third-party licenses.
+For your first violation, those permissions are automatically reinstated
+when you fully remedy the violation, provided you do so before receiving
+written notice from Sergiu Lefter or within 30 days after receiving it.
+The cure period does not authorize continued use while in violation.
+
+For a subsequent violation, or if you miss the first violation's deadline,
+you must fully remedy the violation and obtain written reinstatement from
+Sergiu Lefter before resuming activities that require these permissions.
+Termination does not affect earlier MIT grants, third-party licenses, other
+independent rights, or contribution rights already granted to Sergiu Lefter.
 
 9. Warranty and liability
 

@@ -21,6 +21,15 @@ describe('project licence', () => {
     expect(read('README.md')).toMatch(/## License[\s\S]*\[LICENSE\]\(LICENSE\)/);
   });
 
+  it('presents the contribution grant before a pull request is submitted', () => {
+    expect(read('README.md')).toContain('](CONTRIBUTING.md)');
+    expect(read('CONTRIBUTING.md')).toContain('[LICENSE](LICENSE)');
+    const template = read('.github/pull_request_template.md');
+    expect(template).toContain('/blob/main/LICENSE)');
+    expect(template).toContain('/blob/main/CONTRIBUTING.md)');
+    expect(template).toMatch(/^- \[ \] .*commercial sublicensing and relicensing/m);
+  });
+
   it('ships the complete project licence followed by the independent third-party notices', async () => {
     const result = await build({ build: { write: false }, logLevel: 'silent' });
     const files = (Array.isArray(result) ? result : [result]).flatMap(r => 'output' in r ? r.output : []);

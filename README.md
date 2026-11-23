@@ -284,14 +284,17 @@ docs/              architecture, ADRs, UI inventory/evidence, support matrix, ve
 
 The **emu8086-web Source-Available License v1.0** covers original material for which Sergiu Lefter controls
 licensing rights. Anyone may inspect and download the source, run it locally, modify it for private use,
-and contribute through GitHub pull requests. Private self-hosting is free, including for a class or work
-team behind authentication or a VPN. Public hosting, including a free mirror or public emulator API,
-requires prior written permission. The same applies to selling copies or redistributing them beyond the
-permissions in the [LICENSE](LICENSE).
+and contribute through GitHub pull requests. Before submitting one, read the
+[contribution terms](CONTRIBUTING.md), including the grant to sublicense and relicense your work commercially.
+Private self-hosting is free, including for an enrolled class or a defined work team behind authentication
+or a VPN. An emulator open to anyone who registers counts as public. Public hosting, including a free
+mirror or public emulator API, requires prior written permission. The same applies to selling copies or
+redistributing them beyond the permissions in the [LICENSE](LICENSE).
 
 The change begins at commit `c5e9343fd45e54286b10e5df5b9c623117071216`, immediately after **v1.3.5**.
-Previously published MIT versions and forks based on them may continue to be developed, hosted and
-distributed under their
+Anyone may use, modify, publicly host and distribute previously MIT-licensed code and forks under MIT,
+even if they obtain a copy after the change. Repackaging that code preserves its MIT permissions.
+New material offered solely under the custom license is subject to its restrictions. See the
 [original MIT terms](https://github.com/sergiulefter/emu8086-web/blob/d9f77b90500ae3ea8fad795499fffcb4568fced4/LICENSE).
 
 EMU8086’s documentation and macro library, the CC BY-SA 4.0 fonts, classroom material and dependencies
